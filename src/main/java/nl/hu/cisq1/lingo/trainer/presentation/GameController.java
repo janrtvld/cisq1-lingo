@@ -22,8 +22,7 @@ public class GameController {
     @PostMapping("start")
     public ResponseEntity startGame() {
         try {
-            this.service.startGame();
-            return new ResponseEntity<>("Game created", HttpStatus.CREATED);
+            return new ResponseEntity<>(this.service.startGame(), HttpStatus.CREATED);
         } catch (Exception exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage());
         }

@@ -1,5 +1,6 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
+import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
 import nl.hu.cisq1.lingo.words.domain.Word;
 
 import javax.persistence.*;
@@ -7,7 +8,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-// het starten van een nieuwe ronde en het raden van woorden binnen een ronde.
 @Entity
 @Table(name = "game")
 public class Game implements Serializable {
@@ -24,11 +24,7 @@ public class Game implements Serializable {
     @Lob
     private ArrayList<Round> rounds;
 
-    @Lob
-    private Integer score;
-
     public Game() {
-        this.score = 0;
         this.gameStatus = GameStatus.WAITING_FOR_ROUND;
         this.progress = new Progress();
         this.rounds = new ArrayList<>();
@@ -38,11 +34,11 @@ public class Game implements Serializable {
         if (gameStatus != GameStatus.WAITING_FOR_ROUND) {
             throw new IllegalStateException("Current game status doesn't allow this action. Status: " + gameStatus + ".");
         }
-        // Make New Round
+
         Round round = new Round(wordToGuess);
 
         // Add to array of rounds
-        rounds.add(new Round(wordToGuess));
+        rounds.add(round);
 
         // Change the GameStatus to Playing
         gameStatus = GameStatus.PLAYING;
@@ -58,36 +54,44 @@ public class Game implements Serializable {
         if (gameStatus != GameStatus.PLAYING) {
             throw new IllegalStateException("Current game status doesn't allow this action. Status: " + gameStatus + ".");
         }
-        // Get the round
-        Round round = rounds.get(rounds.size()-1);
 
-        // Play the guess
-        round.guess(attempt);
+        getLatestRound().guess(attempt);
 
         // Change the progress of the game based on the new round information
-        progress.saveNewProgress(round.giveHint(),round.getFeedbackHistory());
+        progress.saveNewProgress(getLatestRound().giveHint(), getLatestRound().getFeedbackHistory());
 
-        // If word guessed; progress the round
-        if (progress.getLastFeedback().isWordGuessed()) {
-            progress.progressRound();
-            gameStatus = GameStatus.WAITING_FOR_ROUND;
+        isPlayerEliminated();
+        isPlaying();
+
+    }
+
+    public Integer provideNextWordLength() {
+        if (getLatestRound().getCurrentWordLength()+1 > 7) {
+            return 5;
         }
-        // If limit is reached; game eliminated
-        if(round.attemptLimitReached()) {
-            gameStatus = GameStatus.ELIMINATED;
-        }
+        return getLatestRound().getCurrentWordLength()+1;
     }
 
     public boolean isPlayerEliminated() {
+        if (getLatestRound().attemptLimitReached() && !progress.getLastFeedback().isWordGuessed()) {
+            gameStatus = GameStatus.ELIMINATED;
+        }
         return gameStatus == GameStatus.ELIMINATED;
     }
 
     public boolean isPlaying() {
+        if (progress.getLastFeedback().isWordGuessed()) {
+            progress.addScore(5 * (5-getLatestRound().getAttempts()) + 5);
+            gameStatus = GameStatus.WAITING_FOR_ROUND;
+        }
         return gameStatus == GameStatus.PLAYING;
     }
 
-    public Round getCurrentRound() {
-        return rounds.get(progress.getRoundNumber()-1);
+    public Round getLatestRound() {
+        if(rounds.isEmpty()) {
+            throw new NoActiveRoundsException();
+        }
+        return rounds.get(rounds.size() - 1);
     }
 
     public Progress getProgress() {

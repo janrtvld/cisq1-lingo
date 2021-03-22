@@ -1,5 +1,9 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
+import javassist.NotFoundException;
+import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
+import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +24,6 @@ public class Progress implements Serializable {
     }
 
     public void progressRound() {
-        if(roundNumber == 0) {
-            this.score = 0;
-        } else {
-            this.score += (5 * (5-currentFeedbackHistory.size())) + 5;
-        }
         this.roundNumber++;
         this.currentFeedbackHistory = new ArrayList<>();
         this.lastHint = "";
@@ -37,13 +36,17 @@ public class Progress implements Serializable {
 
     public Feedback getLastFeedback() {
         if(currentFeedbackHistory.isEmpty()) {
-            return null;
+            throw new NoFeedbackFoundException();
         }
-        return currentFeedbackHistory.get(currentFeedbackHistory.size()-1);
+        return currentFeedbackHistory.get(currentFeedbackHistory.size() - 1);
     }
 
     public Integer getScore() {
         return score;
+    }
+
+    public void addScore(Integer score) {
+        this.score += score;
     }
 
     public int getRoundNumber() {

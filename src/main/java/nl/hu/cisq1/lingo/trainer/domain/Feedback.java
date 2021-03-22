@@ -1,12 +1,14 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
+import javax.persistence.ElementCollection;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
 public class Feedback implements Serializable {
-    private final String attempt;
-    private final List<Mark> marks;
+
+    private String attempt;
+    private List<Mark> marks;
 
     public Feedback(String attempt, List<Mark> marks) {
         this.attempt = attempt;
@@ -40,10 +42,6 @@ public class Feedback implements Serializable {
 
     public String getAttempt() {
         return attempt;
-    }
-
-    public List<Mark> getMarks() {
-        return marks;
     }
 
     @Override
