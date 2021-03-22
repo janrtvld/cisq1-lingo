@@ -2,9 +2,7 @@ package nl.hu.cisq1.lingo.trainer.application;
 
 import javassist.NotFoundException;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRespository;
-import nl.hu.cisq1.lingo.trainer.domain.Feedback;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
-import nl.hu.cisq1.lingo.trainer.domain.Progress;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.GamePresentationDTO;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
@@ -30,14 +28,15 @@ public class GameService {
         this.wordRepository = wordRepository;
     }
 
-    public void startGame() {
+    public GamePresentationDTO startGame() {
         Game game = new Game();
         this.gameRepository.save(game);
+        return convertGameToDTO(game);
     }
 
     public ProgressPresentationDTO getProgress(Long id) {
         Game game = getGameById(id);
-        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getCurrentRound().giveHint()).feedbackHistory(game.getCurrentRound().getFeedbackHistory()).build();
+        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getLatestRound().giveHint()).feedbackHistory(game.getLatestRound().getFeedbackHistory()).build();
     }
 
     public ProgressPresentationDTO startNewRound(Long id) {
@@ -46,7 +45,7 @@ public class GameService {
         game.startNewRound(wordToGuess);
         this.gameRepository.save(game);
 
-        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getCurrentRound().giveHint()).build();
+        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getLatestRound().giveHint()).build();
     }
 
     public ProgressPresentationDTO guess(Long id, String attempt) {
@@ -54,7 +53,7 @@ public class GameService {
         game.guess(attempt);
         this.gameRepository.save(game);
 
-        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getCurrentRound().giveHint()).feedbackHistory(game.getCurrentRound().getFeedbackHistory()).build();
+        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getLatestRound().giveHint()).feedbackHistory(game.getLatestRound().getFeedbackHistory()).build();
     }
 
     public List<GamePresentationDTO> getAllGames() throws NotFoundException {

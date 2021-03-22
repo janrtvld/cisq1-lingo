@@ -1,5 +1,7 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
+import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
+import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
 import nl.hu.cisq1.lingo.words.domain.Word;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -113,7 +115,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("progress is cleared when a new round is started")
+    @DisplayName("last feedback throws exception when there have been no guesses")
     void progressIsCleared() {
         // Arrange
         Word wordToGuess = new Word("BAARD");
@@ -126,7 +128,9 @@ class GameTest {
         game.startNewRound(wordToGuess2);
 
         // Assert
-        assertNull(game.getProgress().getLastFeedback());
+        assertThrows(NoFeedbackFoundException.class, () -> {
+            game.getProgress().getLastFeedback();
+        });
 
     }
 
@@ -143,5 +147,115 @@ class GameTest {
         // Assert
         assertEquals("BAREN", game.getProgress().getLastFeedback().getAttempt());
     }
+
+    @Test
+    @DisplayName("player is eliminated when word is not guessed within attempt limit")
+    void playerEliminatedWordNotGuessed() {
+        // Arrange
+        Word wordToGuess = new Word("BAARD");
+        game.startNewRound(wordToGuess);
+
+        // Act
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+
+
+        // Assert
+        assertTrue(game.isPlayerEliminated());
+
+    }
+
+    @Test
+    @DisplayName("player is not eliminated when word is guessed within attempt limit")
+    void playerNotEliminatedWhenWordIsGuessed() {
+        // Arrange
+        Word wordToGuess = new Word("BAARD");
+        game.startNewRound(wordToGuess);
+
+        // Act
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAARD");
+
+        // Assert
+        assertFalse(game.isPlayerEliminated());
+
+    }
+
+
+    @Test
+    @DisplayName("player is still playing when word is not guessed")
+    void playerIsPlaying() {
+        // Arrange
+        Word wordToGuess = new Word("BAARD");
+        game.startNewRound(wordToGuess);
+
+        // Act
+        game.guess("BAREN");
+
+
+        // Assert
+        assertTrue(game.isPlaying());
+
+    }
+
+    @Test
+    @DisplayName("player is not playing when word is guessed")
+    void playerIsNotPlaying() {
+        // Arrange
+        Word wordToGuess = new Word("BAARD");
+        game.startNewRound(wordToGuess);
+
+        // Act
+        game.guess("BAARD");
+
+        // Assert
+        assertFalse(game.isPlaying());
+
+    }
+
+    @Test
+    @DisplayName("next word length is based on previous round")
+    void nextWordLengthBasedOnRound() {
+        // Arrange
+        Word wordToGuess = new Word("BAARD");
+        game.startNewRound(wordToGuess);
+
+        // Act
+        game.guess("BAARD");
+
+        // Assert
+        assertEquals(6, game.provideNextWordLength());
+
+    }
+
+    @Test
+    @DisplayName("next word length is reset after 7 letter word")
+    void nextWordBetweenValues() {
+        // Arrange
+        Word fiveLetterWord = new Word("BAARD");
+        Word sixLetterWord = new Word("DAAGDE");
+        Word sevenLetterWord = new Word("APEKOOL");
+
+        game.startNewRound(fiveLetterWord);
+        game.guess("BAARD");
+
+        game.startNewRound(sixLetterWord);
+        game.guess("DAAGDE");
+
+        // Act
+        game.startNewRound(sevenLetterWord);
+        game.guess("APEKOOL");
+
+        // Assert
+        assertEquals(5, game.provideNextWordLength());
+
+    }
+
 
 }
