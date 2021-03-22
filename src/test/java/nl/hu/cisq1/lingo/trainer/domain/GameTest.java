@@ -1,6 +1,7 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
+import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
 import nl.hu.cisq1.lingo.words.domain.Word;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,6 +68,15 @@ class GameTest {
             game.startNewRound(wordToGuess2);
         });
 
+    }
+
+    @Test
+    @DisplayName("Current round throws error if game has no rounds")
+    void noActiveRoundsException() {
+        // Act / Assert
+        assertThrows(NoActiveRoundsException.class, () -> {
+            game.getLatestRound();
+        });
     }
 
     @Test
