@@ -2,56 +2,53 @@ package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
 import nl.hu.cisq1.lingo.words.domain.Word;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static nl.hu.cisq1.lingo.trainer.domain.GameStatus.*;
+
 @Entity
 @Table(name = "game")
-public class Game implements Serializable {
+public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Lob
-    private GameStatus gameStatus;
+    @Enumerated(EnumType.STRING)
+    private GameStatus gameStatus = WAITING_FOR_ROUND;
 
-    @Lob
-    private Progress progress;
+    @OneToMany
+    @JoinColumn
+    @Cascade(CascadeType.ALL)
+    private final List<Round> rounds = new ArrayList<>();
 
-    @Lob
-    private ArrayList<Round> rounds;
+    private Progress progress = new Progress();
 
     public Game() {
-        this.gameStatus = GameStatus.WAITING_FOR_ROUND;
-        this.progress = new Progress();
-        this.rounds = new ArrayList<>();
     }
 
     public void startNewRound(Word wordToGuess) {
-        if (gameStatus != GameStatus.WAITING_FOR_ROUND) {
+        if (gameStatus != WAITING_FOR_ROUND) {
             throw new IllegalStateException("Current game status doesn't allow this action. Status: " + gameStatus + ".");
         }
 
         Round round = new Round(wordToGuess);
 
-        // Add to array of rounds
         rounds.add(round);
 
-        // Change the GameStatus to Playing
-        gameStatus = GameStatus.PLAYING;
+        gameStatus = PLAYING;
 
-        // Progress to the next round
         progress.progressRound();
 
-        // Set new progress data
         progress.saveNewProgress(round.giveHint(),round.getFeedbackHistory());
     }
 
     public void guess(String attempt) {
-        if (gameStatus != GameStatus.PLAYING) {
+        if (gameStatus != PLAYING) {
             throw new IllegalStateException("Current game status doesn't allow this action. Status: " + gameStatus + ".");
         }
 
@@ -74,17 +71,17 @@ public class Game implements Serializable {
 
     public boolean isPlayerEliminated() {
         if (getLatestRound().attemptLimitReached() && !progress.getLastFeedback().isWordGuessed()) {
-            gameStatus = GameStatus.ELIMINATED;
+            gameStatus = ELIMINATED;
         }
-        return gameStatus == GameStatus.ELIMINATED;
+        return gameStatus == ELIMINATED;
     }
 
     public boolean isPlaying() {
         if (progress.getLastFeedback().isWordGuessed()) {
             progress.addScore(5 * (5-getLatestRound().getAttempts()) + 5);
-            gameStatus = GameStatus.WAITING_FOR_ROUND;
+            gameStatus = WAITING_FOR_ROUND;
         }
-        return gameStatus == GameStatus.PLAYING;
+        return gameStatus == PLAYING;
     }
 
     public Round getLatestRound() {
