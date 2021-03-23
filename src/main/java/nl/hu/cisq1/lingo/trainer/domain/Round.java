@@ -2,26 +2,37 @@ package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
 import nl.hu.cisq1.lingo.words.domain.Word;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import java.io.Serializable;
+
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Round implements Serializable {
+@Entity
+public class Round {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+
     private Word wordToGuess;
-    private Integer attempts;
-    private List<Feedback> feedbackHistory;
+    private Integer attempts = 0;
+
+    @OneToMany
+    @JoinColumn
+    @Cascade(CascadeType.ALL)
+    private final List<Feedback> feedbackHistory = new ArrayList<Feedback>();
+
     private String lastHint;
 
+
+    public Round() {}
     public Round(Word wordToGuess) {
         this.wordToGuess = wordToGuess;
-        this.feedbackHistory = new ArrayList<Feedback>();
         this.lastHint = getBaseHint();
-        this.attempts = 0;
     }
 
     public void guess(String attempt) {
