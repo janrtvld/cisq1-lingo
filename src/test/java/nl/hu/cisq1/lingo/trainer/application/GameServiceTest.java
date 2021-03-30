@@ -218,6 +218,20 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("All games throws exception by no games")
+    void allGamesReturnsListOfGamesDTO() throws NotFoundException {
+        Game game = new Game();
+        List<Game> gameList = new ArrayList<>();
+        gameList.add(game);
+
+        Mockito.when(gameRepository.findAll())
+                .thenReturn(gameList);
+
+        List<GamePresentationDTO> expected = List.of(convertGameToGameDTO(game));
+        assertEquals(expected.size(), service.getAllGames().size());
+    }
+
+    @Test
     @DisplayName("Guess can not be done if player is eliminated")
     void guessThrowsExceptionByEliminatedPlayer() {
         // Arrange / Act / Assert
