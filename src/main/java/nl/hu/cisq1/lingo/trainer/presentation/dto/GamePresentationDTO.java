@@ -1,6 +1,7 @@
 package nl.hu.cisq1.lingo.trainer.presentation.dto;
 
-import nl.hu.cisq1.lingo.trainer.domain.GameStatus;
+
+import java.util.Objects;
 
 public class GamePresentationDTO {
     public Long id;

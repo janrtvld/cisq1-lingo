@@ -19,6 +19,8 @@ public class GameController {
         this.service = service;
     }
 
+   // TODO: Error responses niet direct doorgeven?
+
     @PostMapping("start")
     public ResponseEntity startGame() {
         try {
