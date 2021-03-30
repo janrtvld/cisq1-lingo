@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SpringGameRespository extends JpaRepository<Game, Long> {
-    List<Game> findAll();
+public interface SpringGameRepository extends JpaRepository<Game, Long> {
 
 }

@@ -1,8 +1,9 @@
 package nl.hu.cisq1.lingo.trainer.application;
 
 import javassist.NotFoundException;
-import nl.hu.cisq1.lingo.trainer.data.SpringGameRespository;
+import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
+import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.GamePresentationDTO;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
@@ -10,7 +11,6 @@ import nl.hu.cisq1.lingo.words.domain.Word;
 import nl.hu.cisq1.lingo.words.domain.exception.WordLengthNotSupportedException;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +20,10 @@ import java.util.List;
 @Transactional
 public class GameService {
 
-    private final SpringGameRespository gameRepository;
+    private final SpringGameRepository gameRepository;
     private final SpringWordRepository wordRepository;
 
-    public GameService(SpringGameRespository gameRepository, SpringWordRepository wordRepository) {
+    public GameService(SpringGameRepository gameRepository, SpringWordRepository wordRepository) {
         this.gameRepository = gameRepository;
         this.wordRepository = wordRepository;
     }
@@ -31,12 +31,12 @@ public class GameService {
     public GamePresentationDTO startGame() {
         Game game = new Game();
         this.gameRepository.save(game);
-        return convertGameToDTO(game);
+        return convertGameToGameDTO(game);
     }
 
     public ProgressPresentationDTO getProgress(Long id) {
         Game game = getGameById(id);
-        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getLatestRound().giveHint()).feedbackHistory(game.getLatestRound().getFeedbackHistory()).build();
+        return convertGameToProgressDTO(game);
     }
 
     public ProgressPresentationDTO startNewRound(Long id) {
@@ -45,7 +45,7 @@ public class GameService {
         game.startNewRound(wordToGuess);
         this.gameRepository.save(game);
 
-        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getLatestRound().giveHint()).build();
+        return convertGameToProgressDTO(game);
     }
 
     public ProgressPresentationDTO guess(Long id, String attempt) {
@@ -53,7 +53,7 @@ public class GameService {
         game.guess(attempt);
         this.gameRepository.save(game);
 
-        return new ProgressPresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).newHint(game.getLatestRound().giveHint()).feedbackHistory(game.getLatestRound().getFeedbackHistory()).build();
+        return convertGameToProgressDTO(game);
     }
 
     public List<GamePresentationDTO> getAllGames() throws NotFoundException {
@@ -65,18 +65,30 @@ public class GameService {
         }
 
         for (Game game : games) {
-            gamePresentationDTOS.add(convertGameToDTO(game));
+            gamePresentationDTOS.add(convertGameToGameDTO(game));
         }
 
         return gamePresentationDTOS;
     }
 
     private Game getGameById(Long id) {
-        return this.gameRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Game with id: " + id + " not found!"));
+        return this.gameRepository.findById(id).orElseThrow(() -> new GameNotFoundException(id));
     }
 
-    private GamePresentationDTO convertGameToDTO(Game game) {
-        return new GamePresentationDTO.Builder(game.getId()).score(game.getProgress().getScore()).gameStatus(game.getGameStatus().toString()).build();
+    private GamePresentationDTO convertGameToGameDTO(Game game) {
+        return new GamePresentationDTO.Builder(game.getId())
+                .score(game.getProgress().getScore())
+                .gameStatus(game.getGameStatus().toString())
+                .build();
+    }
+
+    private ProgressPresentationDTO convertGameToProgressDTO(Game game) {
+        return new ProgressPresentationDTO.Builder(game.getId())
+                .score(game.getProgress().getScore())
+                .newHint(game.getLatestRound().giveHint())
+                .feedbackHistory(game.getLatestRound().getFeedbackHistory())
+                .build();
+
     }
 
 }
