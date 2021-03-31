@@ -4,7 +4,6 @@ import javassist.NotFoundException;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.GamePresentationDTO;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
 import nl.hu.cisq1.lingo.words.domain.Word;
@@ -28,10 +27,14 @@ public class GameService {
         this.wordRepository = wordRepository;
     }
 
-    public GamePresentationDTO startGame() {
+    public ProgressPresentationDTO startGame() {
         Game game = new Game();
+        Word wordToGuess = wordRepository.findRandomWordByLength(5).orElseThrow(() -> new WordLengthNotSupportedException(5));
+        game.startNewRound(wordToGuess);
+
         this.gameRepository.save(game);
-        return convertGameToGameDTO(game);
+
+        return convertGameToProgressDTO(game);
     }
 
     public ProgressPresentationDTO getProgress(Long id) {
@@ -59,16 +62,16 @@ public class GameService {
         return convertGameToProgressDTO(game);
     }
 
-    public List<GamePresentationDTO> getAllGames() throws NotFoundException {
-        List<GamePresentationDTO> gamePresentationDTOS = new ArrayList<>();
+    public List<ProgressPresentationDTO> getAllGames() throws NotFoundException {
+        List<ProgressPresentationDTO> gamePresentationDTOS = new ArrayList<>();
         List<Game> games = this.gameRepository.findAll();
 
-        if(games.isEmpty()) {
+        if (games.isEmpty()) {
             throw new NotFoundException("No games found!");
         }
 
         for (Game game : games) {
-            gamePresentationDTOS.add(convertGameToGameDTO(game));
+            gamePresentationDTOS.add(convertGameToProgressDTO(game));
         }
 
         return gamePresentationDTOS;
@@ -78,16 +81,10 @@ public class GameService {
         return this.gameRepository.findById(id).orElseThrow(() -> new GameNotFoundException(id));
     }
 
-    private GamePresentationDTO convertGameToGameDTO(Game game) {
-        return new GamePresentationDTO.Builder(game.getId())
-                .score(game.getProgress().getScore())
-                .gameStatus(game.getGameStatus().toString())
-                .build();
-    }
-
     private ProgressPresentationDTO convertGameToProgressDTO(Game game) {
         return new ProgressPresentationDTO.Builder(game.getId())
-                .score(game.getProgress().getScore())
+                .gameStatus(game.getGameStatus().getStatus())
+                .score(game.getScore())
                 .newHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())
                 .build();

@@ -144,14 +144,14 @@ class RoundTest {
     @MethodSource("provideFeedbackExamples")
     @DisplayName("provide the correct Feedback")
     void generateFeedback(String attempt, Feedback feedback) {
-        // Arrange
+        // Arrange / Act
 
-        // Act
         round.guess(attempt);
 
         // Assert
-        assertEquals(feedback,round.getFeedbackHistory().get(0));
-
+        System.out.println(feedback.getMarks());
+        System.out.println(round.getLastFeedback().getMarks());
+        assertEquals(feedback,round.getLastFeedback());
     }
 
     static Stream<Arguments> provideFeedbackExamples() {
@@ -162,7 +162,7 @@ class RoundTest {
         String attempt4 = "DRAAD";
         String attempt5 = "BAARD";
 
-        List<Mark> marks1 = List.of(INVALID, INVALID, INVALID, INVALID, INVALID, INVALID);
+        List<Mark> marks1 = List.of(INVALID, INVALID, INVALID, INVALID, INVALID);
         List<Mark> marks2 = List.of(CORRECT, ABSENT, ABSENT, ABSENT, ABSENT);
         List<Mark> marks3 = List.of(CORRECT, CORRECT, PRESENT, ABSENT, ABSENT);
         List<Mark> marks4 = List.of(ABSENT, PRESENT, CORRECT, PRESENT, CORRECT);
@@ -174,13 +174,6 @@ class RoundTest {
         Feedback feedback3 = new Feedback(attempt3, marks3);
         Feedback feedback4 = new Feedback(attempt4, marks4);
         Feedback feedback5 = new Feedback(attempt5, marks5);
-
-        // Do i need to compare the list or just the feedback object?
-//        List<Feedback> feedbackHistory1 = List.of(feedback1);
-//        List<Feedback> feedbackHistory2 = List.of(feedback1, feedback2);
-//        List<Feedback> feedbackHistory3 = List.of(feedback1, feedback2, feedback3);
-//        List<Feedback> feedbackHistory4 = List.of(feedback1, feedback2, feedback3, feedback4);
-//        List<Feedback> feedbackHistory5 = List.of(feedback1, feedback2, feedback3, feedback4, feedback5);
 
         return Stream.of(
                 Arguments.of(attempt1, feedback1),

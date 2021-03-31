@@ -7,6 +7,7 @@ import java.util.Objects;
 
 public class ProgressPresentationDTO {
     public Long id;
+    public String gameStatus;
     public Integer score;
     public List<Feedback> feedbackHistory;
     public String newHint;
@@ -19,16 +20,17 @@ public class ProgressPresentationDTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProgressPresentationDTO that = (ProgressPresentationDTO) o;
-        return Objects.equals(id, that.id) && Objects.equals(score, that.score) && Objects.equals(feedbackHistory, that.feedbackHistory) && Objects.equals(newHint, that.newHint);
+        return Objects.equals(id, that.id) && Objects.equals(gameStatus, that.gameStatus) && Objects.equals(score, that.score) && Objects.equals(feedbackHistory, that.feedbackHistory) && Objects.equals(newHint, that.newHint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, score, feedbackHistory, newHint);
+        return Objects.hash(id, gameStatus, score, feedbackHistory, newHint);
     }
 
     public static class Builder {
         public final Long id;
+        public String gameStatus;
         public Integer score;
         public List<Feedback> feedbackHistory;
         public String newHint;
@@ -37,11 +39,18 @@ public class ProgressPresentationDTO {
             this.id = id;
         }
 
+        public Builder gameStatus(String gameStatus) {
+            this.gameStatus = gameStatus;
+
+            return this;
+        }
+
         public Builder score(Integer score) {
             this.score = score;
 
             return this;
         }
+
 
         public Builder feedbackHistory(List<Feedback> feedbackHistory) {
             this.feedbackHistory = feedbackHistory;
@@ -58,6 +67,7 @@ public class ProgressPresentationDTO {
         public ProgressPresentationDTO build() {
             ProgressPresentationDTO progress = new ProgressPresentationDTO();
             progress.id = this.id;
+            progress.gameStatus = this.gameStatus;
             progress.score = this.score;
             progress.feedbackHistory = this.feedbackHistory;
             progress.newHint = this.newHint;

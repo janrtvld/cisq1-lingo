@@ -1,6 +1,7 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
+import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
 import nl.hu.cisq1.lingo.words.domain.Word;
@@ -44,7 +45,7 @@ class GameTest {
         game.startNewRound(wordToGuess);
 
         // Act / Assert
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(GameStateException.class, () -> {
             game.startNewRound(wordToGuess);
         });
 
@@ -64,7 +65,7 @@ class GameTest {
 
         // Act / Assert
         Word wordToGuess2 = new Word("BLOEM");
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(GameStateException.class, () -> {
             game.startNewRound(wordToGuess2);
         });
 
@@ -92,7 +93,7 @@ class GameTest {
         game.guess("BAREN");
 
         // Act / Assert
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(GameStateException.class, () -> {
             game.guess("BAREN");
         });
     }
@@ -103,7 +104,7 @@ class GameTest {
         // Arrange
 
         // Act / Assert
-        assertThrows(IllegalStateException.class, () -> {
+        assertThrows(GameStateException.class, () -> {
             game.guess("BAREN");
         });
 
@@ -120,7 +121,7 @@ class GameTest {
         game.guess("BAARD");
 
         // Assert
-        assertEquals(25,game.getProgress().getScore());
+        assertEquals(25,game.getScore());
 
     }
 
@@ -139,7 +140,7 @@ class GameTest {
 
         // Assert
         assertThrows(NoFeedbackFoundException.class, () -> {
-            game.getProgress().getLastFeedback();
+            game.getLatestRound().getLastFeedback();
         });
 
     }
@@ -155,7 +156,7 @@ class GameTest {
         game.guess("BAREN");
 
         // Assert
-        assertEquals("BAREN", game.getProgress().getLastFeedback().getAttempt());
+        assertEquals("BAREN", game.getLatestRound().getLastFeedback().getAttempt());
     }
 
     @Test
@@ -174,8 +175,7 @@ class GameTest {
 
 
         // Assert
-        assertTrue(game.isPlayerEliminated());
-
+        assertEquals(GameStatus.ELIMINATED, game.getGameStatus());
     }
 
     @Test
@@ -193,8 +193,7 @@ class GameTest {
         game.guess("BAARD");
 
         // Assert
-        assertFalse(game.isPlayerEliminated());
-
+        assertNotSame(GameStatus.ELIMINATED, game.getGameStatus());
     }
 
 
@@ -208,10 +207,8 @@ class GameTest {
         // Act
         game.guess("BAREN");
 
-
         // Assert
         assertTrue(game.isPlaying());
-
     }
 
     @Test

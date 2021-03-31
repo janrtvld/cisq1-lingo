@@ -4,23 +4,17 @@ import javassist.NotFoundException;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
-import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.GamePresentationDTO;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
 import nl.hu.cisq1.lingo.words.domain.Word;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,14 +44,18 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("Starting a game returns the new created game as DTO object")
+    @DisplayName("Starting a game returns progress of the game")
     void startGameReturnsNewGame() {
         Game game = new Game();
+        game.startNewRound(new Word("tower"));
+
         Mockito.when(gameRepository.save(game))
                 .thenReturn(game);
+        Mockito.when(wordRepository.findRandomWordByLength(anyInt()))
+                .thenReturn(Optional.of(new Word("tower")));
 
-        GamePresentationDTO result = service.startGame();
-        GamePresentationDTO expected = convertGameToGameDTO(game);
+        ProgressPresentationDTO result = service.startGame();
+        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
 
         assertEquals(expected, result);
     }
@@ -144,7 +142,7 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("All games throws exception by no games")
+    @DisplayName("throw exception by no games found")
     void allGamesEmptyException() {
         // Arrange / Act / Assert
         List<Game> gameList = new ArrayList<>();
@@ -156,28 +154,24 @@ class GameServiceTest {
 
     @Test
     @DisplayName("All games returns a list of games")
-    void allGamesReturnsListOfGamesDTO() throws NotFoundException {
+    void allGamesReturnsListOfGames() throws NotFoundException {
         Game game = new Game();
-        List<Game> gameList = new ArrayList<>();
-        gameList.add(game);
+        Word wordToGuess = new Word("GRAAL");
+        game.startNewRound(wordToGuess);
+
+        List<Game> gameList = List.of(game);
 
         Mockito.when(gameRepository.findAll())
                 .thenReturn(gameList);
 
-        List<GamePresentationDTO> expected = List.of(convertGameToGameDTO(game));
-        assertEquals(expected, service.getAllGames());
+        assertEquals(1, service.getAllGames().size());
     }
 
-    private GamePresentationDTO convertGameToGameDTO(Game game) {
-        return new GamePresentationDTO.Builder(game.getId())
-                .score(game.getProgress().getScore())
-                .gameStatus(game.getGameStatus().toString())
-                .build();
-    }
 
     private static ProgressPresentationDTO convertGameToProgressDTO(Game game) {
         return new ProgressPresentationDTO.Builder(game.getId())
-                .score(game.getProgress().getScore())
+                .gameStatus(game.getGameStatus().getStatus())
+                .score(game.getScore())
                 .newHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())
                 .build();
