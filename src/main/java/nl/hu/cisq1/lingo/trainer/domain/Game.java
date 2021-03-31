@@ -63,6 +63,9 @@ public class Game {
     }
 
     public Integer provideNextWordLength() {
+        if (rounds.isEmpty()) {
+            return 5;
+        }
         if (getLatestRound().getCurrentWordLength()+1 > 7) {
             return 5;
         }

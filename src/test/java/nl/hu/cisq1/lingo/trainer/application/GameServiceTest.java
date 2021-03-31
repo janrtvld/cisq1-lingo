@@ -47,7 +47,125 @@ class GameServiceTest {
         gameRepository = Mockito.mock(SpringGameRepository.class);
         wordRepository = Mockito.mock(SpringWordRepository.class);
         service = new GameService(gameRepository,wordRepository);
+    }
 
+    @Test
+    @DisplayName("Starting a game returns the new created game as DTO object")
+    void startGameReturnsNewGame() {
+        Game game = new Game();
+        Mockito.when(gameRepository.save(game))
+                .thenReturn(game);
+
+        GamePresentationDTO result = service.startGame();
+        GamePresentationDTO expected = convertGameToGameDTO(game);
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    @DisplayName("Get progress throws exception if game not found")
+    void getProgressReturnsExceptionIfGameNotFound() {
+        Mockito.when(gameRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(GameNotFoundException.class, () -> service.getProgress(0L));
+    }
+
+    @Test
+    @DisplayName("Get progress returns game as progress DTO")
+    void getProgressReturnsProgressDTO() {
+        Game game = new Game();
+        Word wordToGuess = new Word("tower");
+        game.startNewRound(wordToGuess);
+
+        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
+
+        Mockito.when(gameRepository.findById(anyLong()))
+                .thenReturn(Optional.of(game));
+
+        ProgressPresentationDTO result = service.getProgress(anyLong());
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    @DisplayName("New round throws exception if game does not exists")
+    void newRoundThrowsErrorByNonExistingGame() {
+        Mockito.when(gameRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(GameNotFoundException.class, () -> service.startNewRound(0L));
+    }
+
+    @Test
+    @DisplayName("New round returns the new progress with the just created round")
+    void newRoundReturnsGameProgress() {
+        Game game = new Game();
+        Word wordToGuess = new Word("tower");
+
+        Mockito.when(gameRepository.findById(anyLong()))
+                .thenReturn(Optional.of(new Game()));
+        Mockito.when(wordRepository.findRandomWordByLength(anyInt()))
+                .thenReturn(Optional.of(new Word("tower")));
+
+        ProgressPresentationDTO result = service.startNewRound(anyLong());
+
+        game.startNewRound(wordToGuess);
+        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    @DisplayName("Guess throws exception if game does not exists")
+    void guessThrowsExceptionByNonExistingGame() {
+        Mockito.when(gameRepository.findById(anyLong()))
+                .thenReturn(Optional.empty());
+
+        assertThrows(GameNotFoundException.class, () -> service.guess(0L,"LOSER"));
+    }
+
+    @Test
+    @DisplayName("Guess returns the new progress with the feedback of the done attempt")
+    void guessIsSavedInGameProgress() {
+        Game game = new Game();
+        Word wordToGuess = new Word("tower");
+        game.startNewRound(wordToGuess);
+
+        Mockito.when(gameRepository.findById(anyLong()))
+                .thenReturn(Optional.of(game));
+
+        ProgressPresentationDTO result = service.guess(anyLong(),"lower");
+
+        game.guess("lower");
+        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
+
+        assertEquals(expected, result);
+    }
+
+    @Test
+    @DisplayName("All games throws exception by no games")
+    void allGamesEmptyException() {
+        // Arrange / Act / Assert
+        List<Game> gameList = new ArrayList<>();
+        Mockito.when(gameRepository.findAll())
+                .thenReturn(gameList);
+
+        assertThrows(NotFoundException.class, () -> service.getAllGames());
+    }
+
+    @Test
+    @DisplayName("All games returns a list of games")
+    void allGamesReturnsListOfGamesDTO() throws NotFoundException {
+        Game game = new Game();
+        List<Game> gameList = new ArrayList<>();
+        gameList.add(game);
+
+        Mockito.when(gameRepository.findAll())
+                .thenReturn(gameList);
+
+        List<GamePresentationDTO> expected = List.of(convertGameToGameDTO(game));
+        assertEquals(expected, service.getAllGames());
     }
 
     private GamePresentationDTO convertGameToGameDTO(Game game) {
@@ -63,192 +181,5 @@ class GameServiceTest {
                 .newHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())
                 .build();
-
-    }
-
-    @Test
-    @DisplayName("Starting a game returns game DTO object")
-    void startGameReturnsNewGame() {
-        Game game = new Game();
-
-        Mockito.when(gameRepository.save(game))
-                .thenReturn(game);
-
-        GamePresentationDTO result = service.startGame();
-
-        GamePresentationDTO expected = convertGameToGameDTO(game);
-
-        assertEquals(expected.gameStatus, result.gameStatus);
-        assertEquals(expected.id, result.id);
-        assertEquals(expected.score, result.score);
-    }
-
-    @Test
-    @DisplayName("Get progress throws exception if game not found")
-    void getProgressReturnsErrorIfGameNotFound() {
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
-
-        assertThrows(GameNotFoundException.class, () -> service.getProgress(0L));
-    }
-
-    @Test
-    @DisplayName("Get progress throws exception if there is no progress yet")
-    void getProgressReturnsErrorIfGameHasNoProgress() {
-        Game game = new Game();
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.of(game));
-
-        assertThrows(NoActiveRoundsException.class, () -> service.getProgress(0L));
-    }
-
-    @ParameterizedTest
-    @DisplayName("Get progress returns current state of the game")
-    @MethodSource("randomGameExamples")
-    void getProgressReturnsCurrentGameState(Game game, ProgressPresentationDTO expected) {
-        Mockito.when(gameRepository.findById(game.getId()))
-                .thenReturn(Optional.of(game));
-
-        ProgressPresentationDTO result = service.getProgress(game.getId());
-
-        assertEquals(expected.id, result.id);
-        assertEquals(expected.score, result.score);
-        assertEquals(expected.feedbackHistory, result.feedbackHistory);
-        assertEquals(expected.newHint, result.newHint);
-    }
-
-    static Stream<Arguments> randomGameExamples() {
-        Game gameWithPlayingRound = new Game();
-        Word wordToGuess = new Word("tower");
-        gameWithPlayingRound.startNewRound(wordToGuess);
-        ProgressPresentationDTO gameWithPlayingRoundProgress = convertGameToProgressDTO(gameWithPlayingRound);
-
-        Game gameWithWordGuessed = new Game();
-        gameWithWordGuessed.startNewRound(wordToGuess);
-        gameWithWordGuessed.guess("tower");
-        ProgressPresentationDTO gameWithWordGuessedProgress = convertGameToProgressDTO(gameWithWordGuessed);
-
-        Game gameWithPlayerEliminated = new Game();
-        gameWithPlayerEliminated.startNewRound(wordToGuess);
-        gameWithPlayerEliminated.guess("stupid");
-        gameWithPlayerEliminated.guess("stupid");
-        gameWithPlayerEliminated.guess("stupid");
-        gameWithPlayerEliminated.guess("stupid");
-        gameWithPlayerEliminated.guess("stupid");
-        ProgressPresentationDTO gameWithPlayerEliminatedProgress = convertGameToProgressDTO(gameWithPlayerEliminated);
-
-        return Stream.of(
-                Arguments.of(gameWithPlayingRound, gameWithPlayingRoundProgress),
-                Arguments.of(gameWithWordGuessed, gameWithWordGuessedProgress),
-                Arguments.of(gameWithPlayerEliminated, gameWithPlayerEliminatedProgress)
-        );
-    }
-
-    @Test
-    @DisplayName("New round throws error if game does not exists")
-    void newRoundThrowsErrorByNonExistingGame() {
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
-
-        assertThrows(GameNotFoundException.class, () -> service.startNewRound(anyLong()));
-    }
-
-    @Test
-    @DisplayName("New round returns progress of game")
-    void newRoundReturnsGameProgress() {
-        // Arrange / Act / Assert
-        Game game = new Game();
-        Word wordToGuess = new Word("tower");
-        game.startNewRound(wordToGuess);
-        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
-
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.of(new Game()));
-
-        Mockito.when(wordRepository.findRandomWordByLength(anyInt()))
-                .thenReturn(Optional.of(new Word("tower")));
-
-        ProgressPresentationDTO result = service.startNewRound(anyLong());
-
-        assertEquals(expected.id, result.id);
-        assertEquals(expected.score, result.score);
-        assertEquals(expected.feedbackHistory, result.feedbackHistory);
-        assertEquals(expected.newHint, result.newHint);
-    }
-
-    @Test
-    @DisplayName("Guess can not be done if game does not exists")
-    void guessThrowsExceptionByNonExistingGame() {
-        // Arrange / Act / Assert
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.empty());
-
-        assertThrows(GameNotFoundException.class, () -> service.guess(anyLong(),"LOSER"));
-
-    }
-
-    @Test
-    @DisplayName("Guess is saved and returned in Progress")
-    void guessIsSavedInGameProgress() {
-        // Arrange / Act / Assert
-        Game game = new Game();
-        Word wordToGuess = new Word("tower");
-        game.startNewRound(wordToGuess);
-
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.of(game));
-
-        ProgressPresentationDTO result = service.guess(anyLong(),"lower");
-
-        game.guess("lower");
-        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
-
-        assertEquals(expected.feedbackHistory, result.feedbackHistory);
-    }
-
-    @Test
-    @DisplayName("All games throws exception by no games")
-    void allGamesEmptyException() {
-        // Arrange / Act / Assert
-        List<Game> gameList = new ArrayList<>();
-        Mockito.when(gameRepository.findAll())
-                .thenReturn(gameList);
-
-        assertThrows(NotFoundException.class, () -> service.getAllGames());
-    }
-
-    @Test
-    @DisplayName("All games throws exception by no games")
-    void allGamesReturnsListOfGamesDTO() throws NotFoundException {
-        Game game = new Game();
-        List<Game> gameList = new ArrayList<>();
-        gameList.add(game);
-
-        Mockito.when(gameRepository.findAll())
-                .thenReturn(gameList);
-
-        List<GamePresentationDTO> expected = List.of(convertGameToGameDTO(game));
-        assertEquals(expected.size(), service.getAllGames().size());
-    }
-
-    @Test
-    @DisplayName("Guess can not be done if player is eliminated")
-    void guessThrowsExceptionByEliminatedPlayer() {
-        // Arrange / Act / Assert
-
-    }
-
-    @Test
-    @DisplayName("New round throws error if player is eliminated")
-    void newRoundThrowsExceptionByEliminatedPlayer() {
-        // Arrange / Act / Assert
-
-    }
-
-    @Test
-    @DisplayName("New round starts round with correct word length")
-    void newRoundCorrectWordLength() {
-        // Arrange / Act / Assert
-
     }
 }

@@ -41,8 +41,11 @@ public class GameService {
 
     public ProgressPresentationDTO startNewRound(Long id) {
         Game game = getGameById(id);
-        Word wordToGuess = wordRepository.findRandomWordByLength(5).orElseThrow(() -> new WordLengthNotSupportedException(5));
+        int wordLength = game.provideNextWordLength();
+
+        Word wordToGuess = wordRepository.findRandomWordByLength(wordLength).orElseThrow(() -> new WordLengthNotSupportedException(wordLength));
         game.startNewRound(wordToGuess);
+
         this.gameRepository.save(game);
 
         return convertGameToProgressDTO(game);
