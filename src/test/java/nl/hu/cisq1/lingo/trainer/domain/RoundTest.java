@@ -23,8 +23,7 @@ class RoundTest {
     @BeforeEach
     @DisplayName("init")
     void init() {
-        Word wordToGuess = new Word("BAARD");
-        round = new Round(wordToGuess);
+        round = new Round("BAARD");
     }
 
     @Test

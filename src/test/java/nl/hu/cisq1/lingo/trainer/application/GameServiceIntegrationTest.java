@@ -81,7 +81,6 @@ class GameServiceIntegrationTest {
         this.service.guess(id,"L");
 
         assertThrows(GameStateException.class, () -> this.service.startNewRound(id));
-
     }
 
     @Test
@@ -108,7 +107,6 @@ class GameServiceIntegrationTest {
         this.service.guess(id,"L");
 
         assertThrows(GameStateException.class, () -> this.service.guess(id,"L"));
-
     }
 
     @ParameterizedTest
@@ -123,17 +121,16 @@ class GameServiceIntegrationTest {
 
     static Stream<Arguments> randomGameExamples() {
         Game gameWithPlayingRound = new Game();
-        Word wordToGuess = new Word("tower");
-        gameWithPlayingRound.startNewRound(wordToGuess);
+        gameWithPlayingRound.startNewRound("tower");
         ProgressPresentationDTO gameWithPlayingRoundProgress = convertGameToProgressDTO(gameWithPlayingRound);
 
         Game gameWithWordGuessed = new Game();
-        gameWithWordGuessed.startNewRound(wordToGuess);
+        gameWithWordGuessed.startNewRound("tower");
         gameWithWordGuessed.guess("tower");
         ProgressPresentationDTO gameWithWordGuessedProgress = convertGameToProgressDTO(gameWithWordGuessed);
 
         Game gameWithPlayerEliminated = new Game();
-        gameWithPlayerEliminated.startNewRound(wordToGuess);
+        gameWithPlayerEliminated.startNewRound("tower");
         gameWithPlayerEliminated.guess("stupid");
         gameWithPlayerEliminated.guess("stupid");
         gameWithPlayerEliminated.guess("stupid");
@@ -159,7 +156,7 @@ class GameServiceIntegrationTest {
     @ParameterizedTest
     @DisplayName("next word length is based on current word to guess")
     @MethodSource("wordLengthExamples")
-    void nextWordLength(Word wordToGuess, int nextLength) {
+    void nextWordLength(String wordToGuess, int nextLength) {
         Game game = new Game();
         game.startNewRound(wordToGuess);
         assertEquals(nextLength, game.provideNextWordLength());

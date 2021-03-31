@@ -103,6 +103,7 @@
                         <configuration>
                             <excludes>
                                 <exclude>**/LingoApplication.*</exclude>
+                                <exclude>**/ProgressPresentationDTO.*</exclude>
                             </excludes>
                         </configuration>
                     </execution>

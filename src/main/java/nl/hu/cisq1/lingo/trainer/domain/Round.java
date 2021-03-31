@@ -19,20 +19,19 @@ public class Round {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Lob
-    private Word wordToGuess;
-    private Integer attempts = 0;
 
     @OneToMany
     @JoinColumn
     @Cascade(CascadeType.ALL)
     private final List<Feedback> feedbackHistory = new ArrayList<Feedback>();
 
+    private String wordToGuess;
+    private Integer attempts = 0;
     private String lastHint;
 
 
     public Round() {}
-    public Round(Word wordToGuess) {
+    public Round(String wordToGuess) {
         this.wordToGuess = wordToGuess;
         this.lastHint = getBaseHint();
     }
@@ -43,17 +42,17 @@ public class Round {
         }
         List<Mark> marks = new ArrayList<Mark>();
 
-        for (int i = 0; i < wordToGuess.getLength(); i++) {
-            if (attempt.length() != wordToGuess.getLength()) {
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            if (attempt.length() != wordToGuess.length()) {
                 marks.add(Mark.INVALID);
                 continue;
             }
-            if (attempt.charAt(i) == wordToGuess.getValue().charAt(i)) {
+            if (attempt.charAt(i) == wordToGuess.charAt(i)) {
                 marks.add(Mark.CORRECT);
                 continue;
             }
-            if (wordToGuess.getValue().indexOf(attempt.charAt(i)) != -1) {
-                if (attempt.charAt(wordToGuess.getValue().indexOf(attempt.charAt(i))) == wordToGuess.getValue().charAt(wordToGuess.getValue().indexOf(attempt.charAt(i)))) {
+            if (wordToGuess.indexOf(attempt.charAt(i)) != -1) {
+                if (attempt.charAt(wordToGuess.indexOf(attempt.charAt(i))) == wordToGuess.charAt(wordToGuess.indexOf(attempt.charAt(i)))) {
                     marks.add(Mark.ABSENT);
                 } else {
                     marks.add(Mark.PRESENT);
@@ -69,8 +68,8 @@ public class Round {
 
     private String getBaseHint() {
         String baseHint = "";
-        baseHint += wordToGuess.getValue().charAt(0);
-        for(int i = 0; i < wordToGuess.getLength()-1; i++) {
+        baseHint += wordToGuess.charAt(0);
+        for(int i = 0; i < wordToGuess.length()-1; i++) {
             baseHint += ".";
         }
         return baseHint;
@@ -88,7 +87,7 @@ public class Round {
     }
 
     public Integer getCurrentWordLength() {
-        return wordToGuess.getLength();
+        return wordToGuess.length();
     }
 
     public List<Feedback> getFeedbackHistory() {

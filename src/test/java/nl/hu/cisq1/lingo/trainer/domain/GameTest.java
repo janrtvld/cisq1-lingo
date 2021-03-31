@@ -27,26 +27,24 @@ class GameTest {
     @DisplayName("new round can only be started if there is no open round")
     void roundMadeWithNoOpenRounds() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
 
         // Act
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Assert
-        Round round = new Round(wordToGuess);
-        assertEquals(round,game.getRounds().get(0));
+        Round round = new Round("BAARD");
+        assertEquals(round,game.getLatestRound());
     }
 
     @Test
     @DisplayName("new round can not be started when there is already an open round")
     void roundMadeWithOpenRounds() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act / Assert
         assertThrows(GameStateException.class, () -> {
-            game.startNewRound(wordToGuess);
+            game.startNewRound("BAARD");
         });
 
     }
@@ -55,8 +53,7 @@ class GameTest {
     @DisplayName("new round can not be started when the game is over")
     void newRoundWhenGameIsOver() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
@@ -64,9 +61,8 @@ class GameTest {
         game.guess("BAREN");
 
         // Act / Assert
-        Word wordToGuess2 = new Word("BLOEM");
         assertThrows(GameStateException.class, () -> {
-            game.startNewRound(wordToGuess2);
+            game.startNewRound("BLOEM");
         });
 
     }
@@ -84,8 +80,7 @@ class GameTest {
     @DisplayName("guess can not be made if the player is eliminated")
     void guessWhenGameOver() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
@@ -114,8 +109,7 @@ class GameTest {
     @DisplayName("score is added when the word is guessed")
     void addScoreWhenWordIsGuessed() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act
         game.guess("BAARD");
@@ -129,14 +123,12 @@ class GameTest {
     @DisplayName("last feedback throws exception when there have been no guesses")
     void progressIsCleared() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act
         game.guess("BAARD");
 
-        Word wordToGuess2 = new Word("PLAAG");
-        game.startNewRound(wordToGuess2);
+        game.startNewRound("PLAAG");
 
         // Assert
         assertThrows(NoFeedbackFoundException.class, () -> {
@@ -146,25 +138,10 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("progress is not cleared when the round is still going")
-    void progressIsNotCleared() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-
-        // Act
-        game.guess("BAREN");
-
-        // Assert
-        assertEquals("BAREN", game.getLatestRound().getLastFeedback().getAttempt());
-    }
-
-    @Test
     @DisplayName("player is eliminated when word is not guessed within attempt limit")
     void playerEliminatedWordNotGuessed() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act
         game.guess("BAREN");
@@ -182,8 +159,7 @@ class GameTest {
     @DisplayName("player is not eliminated when word is guessed within attempt limit")
     void playerNotEliminatedWhenWordIsGuessed() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act
         game.guess("BAREN");
@@ -201,8 +177,7 @@ class GameTest {
     @DisplayName("player is still playing when word is not guessed")
     void playerIsPlaying() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act
         game.guess("BAREN");
@@ -215,8 +190,7 @@ class GameTest {
     @DisplayName("player is not playing when word is guessed")
     void playerIsNotPlaying() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act
         game.guess("BAARD");
@@ -230,8 +204,7 @@ class GameTest {
     @DisplayName("next word length is based on previous round")
     void nextWordLengthBasedOnRound() {
         // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
         // Act
         game.guess("BAARD");
@@ -245,18 +218,14 @@ class GameTest {
     @DisplayName("next word length is reset after 7 letter word")
     void nextWordBetweenValues() {
         // Arrange
-        Word fiveLetterWord = new Word("BAARD");
-        Word sixLetterWord = new Word("DAAGDE");
-        Word sevenLetterWord = new Word("APEKOOL");
-
-        game.startNewRound(fiveLetterWord);
+        game.startNewRound("BAARD");
         game.guess("BAARD");
 
-        game.startNewRound(sixLetterWord);
+        game.startNewRound("DAAGDE");
         game.guess("DAAGDE");
 
         // Act
-        game.startNewRound(sevenLetterWord);
+        game.startNewRound("APEKOOL");
         game.guess("APEKOOL");
 
         // Assert

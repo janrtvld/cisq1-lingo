@@ -18,11 +18,10 @@ public class TrainerTestDataFixtures implements CommandLineRunner {
         Game gameWithNoRounds = new Game();
 
         Game gameWithPlayingRound = new Game();
-        Word wordToGuess = new Word("PLANK");
-        gameWithPlayingRound.startNewRound(wordToGuess);
+        gameWithPlayingRound.startNewRound("PLANK");
 
         Game gameWithEliminatedPlayer = new Game();
-        gameWithEliminatedPlayer.startNewRound(wordToGuess);
+        gameWithEliminatedPlayer.startNewRound("PLANK");
         gameWithEliminatedPlayer.guess("LOSER");
         gameWithEliminatedPlayer.guess("LOSER");
         gameWithEliminatedPlayer.guess("LOSER");

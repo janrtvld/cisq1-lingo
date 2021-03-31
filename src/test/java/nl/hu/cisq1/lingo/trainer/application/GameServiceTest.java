@@ -47,7 +47,7 @@ class GameServiceTest {
     @DisplayName("Starting a game returns progress of the game")
     void startGameReturnsNewGame() {
         Game game = new Game();
-        game.startNewRound(new Word("tower"));
+        game.startNewRound("tower");
 
         Mockito.when(gameRepository.save(game))
                 .thenReturn(game);
@@ -73,8 +73,7 @@ class GameServiceTest {
     @DisplayName("Get progress returns game as progress DTO")
     void getProgressReturnsProgressDTO() {
         Game game = new Game();
-        Word wordToGuess = new Word("tower");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("tower");
 
         ProgressPresentationDTO expected = convertGameToProgressDTO(game);
 
@@ -99,7 +98,6 @@ class GameServiceTest {
     @DisplayName("New round returns the new progress with the just created round")
     void newRoundReturnsGameProgress() {
         Game game = new Game();
-        Word wordToGuess = new Word("tower");
 
         Mockito.when(gameRepository.findById(anyLong()))
                 .thenReturn(Optional.of(new Game()));
@@ -108,7 +106,7 @@ class GameServiceTest {
 
         ProgressPresentationDTO result = service.startNewRound(anyLong());
 
-        game.startNewRound(wordToGuess);
+        game.startNewRound("tower");
         ProgressPresentationDTO expected = convertGameToProgressDTO(game);
 
         assertEquals(expected, result);
@@ -127,8 +125,7 @@ class GameServiceTest {
     @DisplayName("Guess returns the new progress with the feedback of the done attempt")
     void guessIsSavedInGameProgress() {
         Game game = new Game();
-        Word wordToGuess = new Word("tower");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("tower");
 
         Mockito.when(gameRepository.findById(anyLong()))
                 .thenReturn(Optional.of(game));
@@ -156,8 +153,7 @@ class GameServiceTest {
     @DisplayName("All games returns a list of games")
     void allGamesReturnsListOfGames() throws NotFoundException {
         Game game = new Game();
-        Word wordToGuess = new Word("GRAAL");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("GRAAL");
 
         List<Game> gameList = List.of(game);
 

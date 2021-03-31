@@ -30,7 +30,7 @@ public class GameService {
     public ProgressPresentationDTO startGame() {
         Game game = new Game();
         Word wordToGuess = wordRepository.findRandomWordByLength(5).orElseThrow(() -> new WordLengthNotSupportedException(5));
-        game.startNewRound(wordToGuess);
+        game.startNewRound(wordToGuess.getValue());
 
         this.gameRepository.save(game);
 
@@ -47,7 +47,7 @@ public class GameService {
         int wordLength = game.provideNextWordLength();
 
         Word wordToGuess = wordRepository.findRandomWordByLength(wordLength).orElseThrow(() -> new WordLengthNotSupportedException(wordLength));
-        game.startNewRound(wordToGuess);
+        game.startNewRound(wordToGuess.getValue());
 
         this.gameRepository.save(game);
 

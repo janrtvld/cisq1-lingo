@@ -32,7 +32,7 @@ public class Game {
     public Game() {
     }
 
-    public void startNewRound(Word wordToGuess) {
+    public void startNewRound(String wordToGuess) {
         if (gameStatus != WAITING_FOR_ROUND) {
             throw new GameStateException(gameStatus);
         }
