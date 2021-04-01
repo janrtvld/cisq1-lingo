@@ -10,7 +10,7 @@ public class ProgressPresentationDTO {
     public String gameStatus;
     public Integer score;
     public List<Feedback> feedbackHistory;
-    public String newHint;
+    public String currentHint;
 
     private ProgressPresentationDTO() {
     }
@@ -20,12 +20,12 @@ public class ProgressPresentationDTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProgressPresentationDTO that = (ProgressPresentationDTO) o;
-        return Objects.equals(id, that.id) && Objects.equals(gameStatus, that.gameStatus) && Objects.equals(score, that.score) && Objects.equals(feedbackHistory, that.feedbackHistory) && Objects.equals(newHint, that.newHint);
+        return Objects.equals(id, that.id) && Objects.equals(gameStatus, that.gameStatus) && Objects.equals(score, that.score) && Objects.equals(feedbackHistory, that.feedbackHistory) && Objects.equals(currentHint, that.currentHint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, gameStatus, score, feedbackHistory, newHint);
+        return Objects.hash(id, gameStatus, score, feedbackHistory, currentHint);
     }
 
     public static class Builder {
@@ -33,7 +33,7 @@ public class ProgressPresentationDTO {
         public String gameStatus;
         public Integer score;
         public List<Feedback> feedbackHistory;
-        public String newHint;
+        public String currentHint;
 
         public Builder(Long id) {
             this.id = id;
@@ -58,8 +58,8 @@ public class ProgressPresentationDTO {
             return this;
         }
 
-        public Builder newHint(String newHint) {
-            this.newHint = newHint;
+        public Builder currentHint(String currentHint) {
+            this.currentHint = currentHint;
 
             return this;
         }
@@ -70,7 +70,7 @@ public class ProgressPresentationDTO {
             progress.gameStatus = this.gameStatus;
             progress.score = this.score;
             progress.feedbackHistory = this.feedbackHistory;
-            progress.newHint = this.newHint;
+            progress.currentHint = this.currentHint;
 
             return progress;
         }

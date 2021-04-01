@@ -85,7 +85,7 @@ public class GameService {
         return new ProgressPresentationDTO.Builder(game.getId())
                 .gameStatus(game.getGameStatus().getStatus())
                 .score(game.getScore())
-                .newHint(game.getLatestRound().giveHint())
+                .currentHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())
                 .build();
 

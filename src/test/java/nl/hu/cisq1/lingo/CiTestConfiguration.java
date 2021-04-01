@@ -1,6 +1,6 @@
 package nl.hu.cisq1.lingo;
 
-import nl.hu.cisq1.lingo.trainer.TrainerTestDataFixtures;
+import nl.hu.cisq1.lingo.trainer.GameTestDataFixtures;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.words.WordTestDataFixtures;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
@@ -19,6 +19,6 @@ public class CiTestConfiguration {
 
     @Bean
     CommandLineRunner importGames(SpringGameRepository repository) {
-        return new TrainerTestDataFixtures(repository);
+        return new GameTestDataFixtures(repository);
     }
 }

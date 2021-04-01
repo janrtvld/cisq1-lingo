@@ -5,9 +5,7 @@ import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.GameStatus;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
-import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
-import nl.hu.cisq1.lingo.words.domain.Word;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,7 +53,7 @@ class GameServiceIntegrationTest {
 
         assertEquals( GameStatus.PLAYING.getStatus(), progress.gameStatus);
         assertEquals( 0, progress.score);
-        assertEquals( 5, progress.newHint.length());
+        assertEquals( 5, progress.currentHint.length());
         assertEquals( 0, progress.feedbackHistory.size());
     }
 
@@ -114,7 +112,7 @@ class GameServiceIntegrationTest {
     @MethodSource("randomGameExamples")
     void getProgressReturnsCurrentGameState(Game game, ProgressPresentationDTO progress) {
         assertEquals(progress.feedbackHistory, game.getLatestRound().getFeedbackHistory());
-        assertEquals(progress.newHint, game.getLatestRound().giveHint());
+        assertEquals(progress.currentHint, game.getLatestRound().giveHint());
         assertEquals(progress.score, game.getScore());
         assertEquals(progress.id, game.getId());
     }
@@ -148,7 +146,7 @@ class GameServiceIntegrationTest {
     private static ProgressPresentationDTO convertGameToProgressDTO(Game game) {
         return new ProgressPresentationDTO.Builder(game.getId())
                 .score(game.getScore())
-                .newHint(game.getLatestRound().giveHint())
+                .currentHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())
                 .build();
     }

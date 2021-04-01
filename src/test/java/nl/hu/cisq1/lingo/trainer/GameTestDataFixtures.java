@@ -6,10 +6,10 @@ import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
 import nl.hu.cisq1.lingo.words.domain.Word;
 import org.springframework.boot.CommandLineRunner;
 
-public class TrainerTestDataFixtures implements CommandLineRunner {
+public class GameTestDataFixtures implements CommandLineRunner {
     private final SpringGameRepository gameRepository;
 
-    public TrainerTestDataFixtures(SpringGameRepository gameRepository ) {
+    public GameTestDataFixtures(SpringGameRepository gameRepository ) {
         this.gameRepository = gameRepository;
     }
 
