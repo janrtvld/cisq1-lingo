@@ -67,7 +67,7 @@ public class Game {
 
     public Round getLatestRound() {
         if(rounds.isEmpty()) {
-            return null;
+            throw new GameStateException(gameStatus);
         }
         return rounds.get(rounds.size() - 1);
     }

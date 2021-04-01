@@ -13,8 +13,6 @@ public class GameTestDataFixtures implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        Game gameWithNoRounds = new Game();
-
         Game gameWithPlayingRound = new Game();
         gameWithPlayingRound.startNewRound("PLANK");
 
@@ -26,7 +24,6 @@ public class GameTestDataFixtures implements CommandLineRunner {
         gameWithEliminatedPlayer.guess("LOSER");
         gameWithEliminatedPlayer.guess("LOSER");
 
-        this.gameRepository.save(gameWithNoRounds);
         this.gameRepository.save(gameWithPlayingRound);
         this.gameRepository.save(gameWithEliminatedPlayer);
     }
