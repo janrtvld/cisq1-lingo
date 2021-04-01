@@ -85,10 +85,11 @@ class GameControllerTest {
     @Test
     @DisplayName("getting a list of all games")
     void getListGames() throws Exception {
-        RequestBuilder newGameRequest = MockMvcRequestBuilders
+        RequestBuilder request = MockMvcRequestBuilders
                 .post("/lingo/start");
 
-        MockHttpServletResponse response = mockMvc.perform(newGameRequest).andReturn().getResponse();
+        mockMvc.perform(request)
+                .andExpect(status().isOk());
 
         RequestBuilder progressRequest = MockMvcRequestBuilders
                 .get("/lingo/games");
