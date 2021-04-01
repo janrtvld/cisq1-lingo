@@ -82,6 +82,12 @@ public class GameService {
     }
 
     private ProgressPresentationDTO convertGameToProgressDTO(Game game) {
+        if (game.getLatestRound() == null) {
+            return new ProgressPresentationDTO.Builder(game.getId())
+                    .gameStatus(game.getGameStatus().getStatus())
+                    .score(game.getScore())
+                    .build();
+        }
         return new ProgressPresentationDTO.Builder(game.getId())
                 .gameStatus(game.getGameStatus().getStatus())
                 .score(game.getScore())

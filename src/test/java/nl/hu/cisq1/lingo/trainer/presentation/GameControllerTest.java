@@ -88,8 +88,7 @@ class GameControllerTest {
         RequestBuilder request = MockMvcRequestBuilders
                 .post("/lingo/start");
 
-        mockMvc.perform(request)
-                .andExpect(status().isOk());
+        mockMvc.perform(request);
 
         RequestBuilder progressRequest = MockMvcRequestBuilders
                 .get("/lingo/games");
