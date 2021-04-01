@@ -6,7 +6,6 @@ import java.util.Objects;
 
 @Entity
 public class Feedback {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -34,7 +33,6 @@ public class Feedback {
                 newHint.append(".");
             }
         }
-
         return newHint.toString();
     }
 

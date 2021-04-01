@@ -2,10 +2,8 @@ package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
-import nl.hu.cisq1.lingo.words.domain.Word;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
-
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -14,11 +12,9 @@ import java.util.Objects;
 
 @Entity
 public class Round {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
 
     @OneToMany
     @JoinColumn
@@ -43,16 +39,14 @@ public class Round {
         List<Mark> marks = new ArrayList<Mark>();
 
         for (int i = 0; i < wordToGuess.length(); i++) {
-            if (attempt.length() != wordToGuess.length()) {
+            if (attemptLengthInvalid(attempt)) {
                 marks.add(Mark.INVALID);
                 continue;
             }
-            if (attempt.charAt(i) == wordToGuess.charAt(i)) {
-                marks.add(Mark.CORRECT);
-                continue;
-            }
             if (wordToGuess.indexOf(attempt.charAt(i)) != -1) {
-                if (attempt.charAt(wordToGuess.indexOf(attempt.charAt(i))) == wordToGuess.charAt(wordToGuess.indexOf(attempt.charAt(i)))) {
+                if (attempt.charAt(i) == wordToGuess.charAt(i)) {
+                    marks.add(Mark.CORRECT);
+                } else if (attempt.charAt(wordToGuess.indexOf(attempt.charAt(i))) == wordToGuess.charAt(wordToGuess.indexOf(attempt.charAt(i)))) {
                     marks.add(Mark.ABSENT);
                 } else {
                     marks.add(Mark.PRESENT);
@@ -63,16 +57,18 @@ public class Round {
         }
         attempts++;
         feedbackHistory.add(new Feedback(attempt,marks));
+    }
 
+    private boolean attemptLengthInvalid(String attempt) {
+        return attempt.length() != wordToGuess.length();
     }
 
     private String getBaseHint() {
-        String baseHint = "";
-        baseHint += wordToGuess.charAt(0);
-        for(int i = 0; i < wordToGuess.length()-1; i++) {
-            baseHint += ".";
-        }
-        return baseHint;
+        StringBuilder baseHint = new StringBuilder();
+        baseHint.append(wordToGuess.charAt(0));
+        baseHint.append(".".repeat(wordToGuess.length() - 1));
+
+        return baseHint.toString();
     }
 
     public String giveHint() {
@@ -82,8 +78,16 @@ public class Round {
         return lastHint;
     }
 
+    public Feedback getLastFeedback() {
+        if(feedbackHistory.isEmpty()) {
+            throw new NoFeedbackFoundException();
+        }
+        return feedbackHistory.get(feedbackHistory.size() - 1);
+    }
+
     public boolean attemptLimitReached() {
-        return attempts >= 5;
+        int attemptLimit = 5;
+        return attempts >= attemptLimit;
     }
 
     public Integer getCurrentWordLength() {
@@ -92,13 +96,6 @@ public class Round {
 
     public List<Feedback> getFeedbackHistory() {
         return feedbackHistory;
-    }
-
-    public Feedback getLastFeedback() {
-        if(feedbackHistory.isEmpty()) {
-            throw new NoFeedbackFoundException();
-        }
-        return feedbackHistory.get(feedbackHistory.size() - 1);
     }
 
     public Integer getAttempts() {

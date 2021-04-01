@@ -2,7 +2,6 @@ package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
-import nl.hu.cisq1.lingo.words.domain.Word;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
@@ -54,14 +53,6 @@ public class Game {
         checkPlayerVictory();
     }
 
-    public Integer provideNextWordLength() {
-        int maxWordLength = 7;
-        if (rounds.isEmpty() || getLatestRound().getCurrentWordLength() == maxWordLength) {
-            return 5;
-        }
-        return getLatestRound().getCurrentWordLength()+1;
-    }
-
     public void checkPlayerEliminated() {
         if (getLatestRound().attemptLimitReached() && !getLatestRound().getLastFeedback().isWordGuessed()) {
             gameStatus = ELIMINATED;
@@ -82,6 +73,14 @@ public class Game {
         return rounds.get(rounds.size() - 1);
     }
 
+    public Integer provideNextWordLength() {
+        int maxWordLength = 7;
+        if (rounds.isEmpty() || getLatestRound().getCurrentWordLength() == maxWordLength) {
+            return 5;
+        }
+        return getLatestRound().getCurrentWordLength()+1;
+    }
+
     public boolean isPlaying() {
         return gameStatus == PLAYING;
     }
@@ -98,7 +97,4 @@ public class Game {
         return gameStatus;
     }
 
-    public List<Round> getRounds() {
-        return rounds;
-    }
 }
