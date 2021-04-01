@@ -2,8 +2,6 @@ package nl.hu.cisq1.lingo.trainer;
 
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
-import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
-import nl.hu.cisq1.lingo.words.domain.Word;
 import org.springframework.boot.CommandLineRunner;
 
 public class GameTestDataFixtures implements CommandLineRunner {

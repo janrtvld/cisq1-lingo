@@ -7,10 +7,8 @@ import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
 import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 
@@ -22,8 +20,6 @@ public class GameController {
     public GameController(GameService service) {
         this.service = service;
     }
-
-   // TODO: Error responses niet direct doorgeven?
 
     @PostMapping("start")
     public ProgressPresentationDTO startGame() {

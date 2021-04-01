@@ -110,8 +110,4 @@ public class Round {
         return Objects.equals(id, round.id) && Objects.equals(wordToGuess, round.wordToGuess) && Objects.equals(attempts, round.attempts) && Objects.equals(feedbackHistory, round.feedbackHistory) && Objects.equals(lastHint, round.lastHint);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, wordToGuess, attempts, feedbackHistory, lastHint);
-    }
 }
