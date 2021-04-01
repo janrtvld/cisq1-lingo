@@ -85,20 +85,17 @@ class GameControllerTest {
     @Test
     @DisplayName("getting a list of all games")
     void getListGames() throws Exception {
-        RequestBuilder firstGameRequest = MockMvcRequestBuilders
-                .post("/lingo/start");
-        RequestBuilder secondGameRequest = MockMvcRequestBuilders
+        RequestBuilder newGameRequest = MockMvcRequestBuilders
                 .post("/lingo/start");
 
-        mockMvc.perform(firstGameRequest);
-        mockMvc.perform(secondGameRequest);
+        MockHttpServletResponse response = mockMvc.perform(newGameRequest).andReturn().getResponse();
 
         RequestBuilder progressRequest = MockMvcRequestBuilders
                 .get("/lingo/games");
 
         mockMvc.perform(progressRequest)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(2))));
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
 
 }
