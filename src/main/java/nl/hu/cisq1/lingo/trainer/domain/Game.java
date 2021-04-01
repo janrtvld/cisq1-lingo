@@ -1,7 +1,6 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
-import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
@@ -68,7 +67,7 @@ public class Game {
 
     public Round getLatestRound() {
         if(rounds.isEmpty()) {
-            throw new NoActiveRoundsException();
+            throw new GameStateException(gameStatus);
         }
         return rounds.get(rounds.size() - 1);
     }
