@@ -107,7 +107,11 @@ public class Round {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Round round = (Round) o;
-        return Objects.equals(id, round.id) && Objects.equals(wordToGuess, round.wordToGuess) && Objects.equals(attempts, round.attempts) && Objects.equals(feedbackHistory, round.feedbackHistory) && Objects.equals(lastHint, round.lastHint);
+        return Objects.equals(id, round.id) && Objects.equals(feedbackHistory, round.feedbackHistory) && Objects.equals(wordToGuess, round.wordToGuess) && Objects.equals(attempts, round.attempts) && Objects.equals(lastHint, round.lastHint);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, feedbackHistory, wordToGuess, attempts, lastHint);
+    }
 }

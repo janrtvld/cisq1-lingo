@@ -60,4 +60,8 @@ public class Feedback {
         return Objects.equals(id, feedback.id) && Objects.equals(attempt, feedback.attempt) && Objects.equals(marks, feedback.marks);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, attempt, marks);
+    }
 }
