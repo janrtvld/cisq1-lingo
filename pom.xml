@@ -85,7 +85,6 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.6</version>
-
                 <executions>
                     <execution>
                         <id>pre-unit-test</id>
@@ -93,7 +92,6 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-
                     <execution>
                         <id>post-unit-test</id>
                         <phase>test</phase>
