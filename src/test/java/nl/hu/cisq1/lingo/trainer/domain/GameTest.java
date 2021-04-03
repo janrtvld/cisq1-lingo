@@ -1,12 +1,15 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
-import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
-import nl.hu.cisq1.lingo.trainer.domain.exception.NoActiveRoundsException;
+import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
-import nl.hu.cisq1.lingo.words.domain.Word;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
@@ -17,255 +20,178 @@ class GameTest {
     private Game game;
 
     @BeforeEach
-    @DisplayName("init")
+    @DisplayName("initiate game for tests")
     void init() {
         game = new Game();
     }
 
     @Test
-    @DisplayName("new round can only be started if there is no open round")
-    void roundMadeWithNoOpenRounds() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-
-        // Act
-        game.startNewRound(wordToGuess);
-
-        // Assert
-        Round round = new Round(wordToGuess);
-        assertEquals(round,game.getRounds().get(0));
-    }
-
-    @Test
-    @DisplayName("new round can not be started when there is already an open round")
-    void roundMadeWithOpenRounds() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+    @DisplayName("new round can not be started when current round is still open")
+    void cannotStartRoundWhenCurrentRoundIsOpen() {
+        game.startNewRound("BAARD");
 
         // Act / Assert
-        assertThrows(IllegalStateException.class, () -> {
-            game.startNewRound(wordToGuess);
+        assertThrows(GameStateException.class, () -> {
+            game.startNewRound("BAARD");
         });
-
     }
 
     @Test
-    @DisplayName("new round can not be started when the game is over")
-    void newRoundWhenGameIsOver() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+    @DisplayName("new round can not be started when the game is eliminated")
+    void cannotStartRoundWhenGameEliminated() {
+        game.startNewRound("BAARD");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
 
-        // Act / Assert
-        Word wordToGuess2 = new Word("BLOEM");
-        assertThrows(IllegalStateException.class, () -> {
-            game.startNewRound(wordToGuess2);
+        assertThrows(GameStateException.class, () -> {
+            game.startNewRound("BLOEM");
         });
-
     }
 
     @Test
-    @DisplayName("Current round throws error if game has no rounds")
+    @DisplayName("new round changes status of the game to Playing")
+    void newRoundChangesGameStatus() {
+        game.startNewRound("BAARD");
+
+        assertEquals(GameStatus.PLAYING,game.getGameStatus());
+    }
+
+    @Test
+    @DisplayName("round is added to the game")
+    void roundAddedToGame() {
+        game.startNewRound("BAARD");
+
+        Round round = new Round("BAARD");
+        assertEquals(round,game.getLatestRound());
+    }
+
+    @Test
+    @DisplayName("Latest round throws error if game has no rounds")
     void noActiveRoundsException() {
-        // Act / Assert
-        assertThrows(NoActiveRoundsException.class, () -> {
+        assertThrows(GameStateException.class, () -> {
             game.getLatestRound();
         });
     }
 
     @Test
-    @DisplayName("guess can not be made if the player is eliminated")
-    void guessWhenGameOver() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-        game.guess("BAREN");
-        game.guess("BAREN");
-        game.guess("BAREN");
-        game.guess("BAREN");
-        game.guess("BAREN");
-
-        // Act / Assert
-        assertThrows(IllegalStateException.class, () -> {
-            game.guess("BAREN");
-        });
-    }
-
-    @Test
     @DisplayName("guess can not be made if the game has no open round")
-    void guessWhenNoRound() {
-        // Arrange
-
-        // Act / Assert
-        assertThrows(IllegalStateException.class, () -> {
+    void cannotGuessWhenNoRound() {
+        assertThrows(GameStateException.class, () -> {
             game.guess("BAREN");
         });
-
     }
 
     @Test
-    @DisplayName("score is added when the word is guessed")
-    void addScoreWhenWordIsGuessed() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-
-        // Act
-        game.guess("BAARD");
-
-        // Assert
-        assertEquals(25,game.getProgress().getScore());
-
-    }
-
-    @Test
-    @DisplayName("last feedback throws exception when there have been no guesses")
-    void progressIsCleared() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-
-        // Act
-        game.guess("BAARD");
-
-        Word wordToGuess2 = new Word("PLAAG");
-        game.startNewRound(wordToGuess2);
-
-        // Assert
-        assertThrows(NoFeedbackFoundException.class, () -> {
-            game.getProgress().getLastFeedback();
-        });
-
-    }
-
-    @Test
-    @DisplayName("progress is not cleared when the round is still going")
-    void progressIsNotCleared() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-
-        // Act
+    @DisplayName("guess can not be made if the game is eliminated")
+    void cannotGuessWhenGameEliminated() {
+        game.startNewRound("BAARD");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
         game.guess("BAREN");
 
-        // Assert
-        assertEquals("BAREN", game.getProgress().getLastFeedback().getAttempt());
+        assertThrows(GameStateException.class, () -> {
+            game.guess("BAREN");
+        });
     }
 
     @Test
     @DisplayName("player is eliminated when word is not guessed within attempt limit")
     void playerEliminatedWordNotGuessed() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
-        // Act
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
 
-
-        // Assert
-        assertTrue(game.isPlayerEliminated());
-
+        assertEquals(GameStatus.ELIMINATED, game.getGameStatus());
     }
 
     @Test
     @DisplayName("player is not eliminated when word is guessed within attempt limit")
     void playerNotEliminatedWhenWordIsGuessed() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
+        game.startNewRound("BAARD");
 
-        // Act
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAREN");
         game.guess("BAARD");
 
-        // Assert
-        assertFalse(game.isPlayerEliminated());
-
+        assertNotSame(GameStatus.ELIMINATED, game.getGameStatus());
     }
 
+    @Test
+    @DisplayName("game status is changed when word is guessed")
+    void correctGuessChangesStatus() {
+        game.startNewRound("BAARD");
+        game.guess("BAARD");
+
+        assertEquals(GameStatus.WAITING_FOR_ROUND, game.getGameStatus());
+    }
+
+    @Test
+    @DisplayName("score is added when the word is guessed")
+    void addScoreWhenWordIsGuessed() {
+        game.startNewRound("BAARD");
+        game.guess("BAARD");
+
+        assertEquals(25,game.getScore());
+    }
 
     @Test
     @DisplayName("player is still playing when word is not guessed")
     void playerIsPlaying() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-
-        // Act
+        game.startNewRound("BAARD");
         game.guess("BAREN");
 
-
-        // Assert
         assertTrue(game.isPlaying());
-
     }
 
     @Test
     @DisplayName("player is not playing when word is guessed")
     void playerIsNotPlaying() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-
-        // Act
+        game.startNewRound("BAARD");
         game.guess("BAARD");
 
-        // Assert
         assertFalse(game.isPlaying());
-
     }
 
     @Test
     @DisplayName("next word length is based on previous round")
     void nextWordLengthBasedOnRound() {
-        // Arrange
-        Word wordToGuess = new Word("BAARD");
-        game.startNewRound(wordToGuess);
-
-        // Act
+        game.startNewRound("BAARD");
         game.guess("BAARD");
 
-        // Assert
         assertEquals(6, game.provideNextWordLength());
-
     }
 
-    @Test
+    @ParameterizedTest
     @DisplayName("next word length is reset after 7 letter word")
-    void nextWordBetweenValues() {
-        // Arrange
-        Word fiveLetterWord = new Word("BAARD");
-        Word sixLetterWord = new Word("DAAGDE");
-        Word sevenLetterWord = new Word("APEKOOL");
+    @MethodSource("provideNextWordExamples")
+    void nextWordBetweenValues(String wordToGuess, Integer expectedWordLength) {
+        game.startNewRound(wordToGuess);
+        game.guess(wordToGuess);
 
-        game.startNewRound(fiveLetterWord);
-        game.guess("BAARD");
-
-        game.startNewRound(sixLetterWord);
-        game.guess("DAAGDE");
-
-        // Act
-        game.startNewRound(sevenLetterWord);
-        game.guess("APEKOOL");
-
-        // Assert
-        assertEquals(5, game.provideNextWordLength());
-
+        assertEquals(expectedWordLength, game.provideNextWordLength());
     }
 
+    static Stream<Arguments> provideNextWordExamples() {
+        String fiveLetterWord = "BAARD";
+        String sixLetterWord = "DAAGDE";
+        String sevenLetterWord = "APEKOOL";
+
+        return Stream.of(
+                Arguments.of(fiveLetterWord,  6),
+                Arguments.of(sixLetterWord,  7),
+                Arguments.of(sevenLetterWord,  5)
+        );
+    }
 
 }

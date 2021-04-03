@@ -1,10 +1,9 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
-import nl.hu.cisq1.lingo.words.domain.Word;
+import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
-
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -13,24 +12,21 @@ import java.util.Objects;
 
 @Entity
 public class Round {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    private Word wordToGuess;
-    private Integer attempts = 0;
-
     @OneToMany
     @JoinColumn
     @Cascade(CascadeType.ALL)
-    private final List<Feedback> feedbackHistory = new ArrayList<Feedback>();
+    private final List<Feedback> feedbackHistory = new ArrayList<>();
 
+    private String wordToGuess;
+    private Integer attempts = 0;
     private String lastHint;
 
-
     public Round() {}
-    public Round(Word wordToGuess) {
+    public Round(String wordToGuess) {
         this.wordToGuess = wordToGuess;
         this.lastHint = getBaseHint();
     }
@@ -39,19 +35,23 @@ public class Round {
         if(attemptLimitReached()) {
             throw new AttemptLimitReachedException(attempts);
         }
-        List<Mark> marks = new ArrayList<Mark>();
+        createFeedback(attempt);
+        attempts++;
+    }
 
-        for (int i = 0; i < attempt.length(); i++) {
-            if (attempt.length() != wordToGuess.getLength()) {
+    private void createFeedback(String attempt) {
+        List<Mark> marks = new ArrayList<>();
+
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            if (attemptInvalid(attempt)) {
                 marks.add(Mark.INVALID);
                 continue;
             }
-            if (attempt.charAt(i) == wordToGuess.getValue().charAt(i)) {
-                marks.add(Mark.CORRECT);
-                continue;
-            }
-            if (wordToGuess.getValue().indexOf(attempt.charAt(i)) != -1) {
-                if (attempt.charAt(wordToGuess.getValue().indexOf(attempt.charAt(i))) == wordToGuess.getValue().charAt(wordToGuess.getValue().indexOf(attempt.charAt(i)))) {
+            Character character = attempt.charAt(i);
+            if (characterInWordToGuess(character)) {
+                if (characterCorrect(character, i)) {
+                    marks.add(Mark.CORRECT);
+                } else if (characterAlreadyMarked(attempt, i)) {
                     marks.add(Mark.ABSENT);
                 } else {
                     marks.add(Mark.PRESENT);
@@ -60,18 +60,28 @@ public class Round {
                 marks.add(Mark.ABSENT);
             }
         }
-        attempts++;
         feedbackHistory.add(new Feedback(attempt,marks));
+    }
 
+    private boolean characterInWordToGuess(Character character) {
+        return wordToGuess.indexOf(character) != -1;
+    }
+
+    private boolean characterCorrect(Character character, Integer index) {
+        return wordToGuess.charAt(index) == character;
+    }
+
+    private boolean characterAlreadyMarked(String attempt, Integer index) {
+        return attempt.charAt(wordToGuess.indexOf(attempt.charAt(index))) == wordToGuess.charAt(wordToGuess.indexOf(attempt.charAt(index)));
+    }
+
+    private boolean attemptInvalid(String attempt) {
+        return attempt.length() != wordToGuess.length();
     }
 
     private String getBaseHint() {
-        String baseHint = "";
-        baseHint += wordToGuess.getValue().charAt(0);
-        for(int i = 0; i < wordToGuess.getLength()-1; i++) {
-            baseHint += ".";
-        }
-        return baseHint;
+        return wordToGuess.charAt(0) +
+                ".".repeat(wordToGuess.length() - 1);
     }
 
     public String giveHint() {
@@ -81,12 +91,20 @@ public class Round {
         return lastHint;
     }
 
+    public Feedback getLastFeedback() {
+        if(feedbackHistory.isEmpty()) {
+            throw new NoFeedbackFoundException();
+        }
+        return feedbackHistory.get(feedbackHistory.size() - 1);
+    }
+
     public boolean attemptLimitReached() {
-        return attempts >= 5;
+        int attemptLimit = 5;
+        return attempts >= attemptLimit;
     }
 
     public Integer getCurrentWordLength() {
-        return wordToGuess.getLength();
+        return wordToGuess.length();
     }
 
     public List<Feedback> getFeedbackHistory() {
@@ -97,18 +115,16 @@ public class Round {
         return attempts;
     }
 
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Round round = (Round) o;
-        return Objects.equals(wordToGuess, round.wordToGuess) && Objects.equals(attempts, round.attempts) && Objects.equals(feedbackHistory, round.feedbackHistory) && Objects.equals(lastHint, round.lastHint);
+        return Objects.equals(id, round.id) && Objects.equals(feedbackHistory, round.feedbackHistory) && Objects.equals(wordToGuess, round.wordToGuess) && Objects.equals(attempts, round.attempts) && Objects.equals(lastHint, round.lastHint);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(wordToGuess, attempts, feedbackHistory, lastHint);
+        return Objects.hash(id, feedbackHistory, wordToGuess, attempts, lastHint);
     }
 }

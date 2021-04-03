@@ -19,25 +19,20 @@ class FeedbackTest {
     @Test
     @DisplayName("word is guessed when all marks are correct")
     void isWordGuessed() {
-        // Arrange
         List<Mark> marks = List.of(CORRECT, CORRECT, CORRECT, CORRECT, CORRECT);
         String attempt = "PAARD";
         Feedback feedback = new Feedback(attempt, marks);
 
-        // Act / Assert
         assertTrue(feedback.isWordGuessed());
-
     }
 
     @Test
     @DisplayName("word is not guessed when all marks are not correct")
     void isWordNotGuessed() {
-        // Arrange
         List<Mark> marks = List.of(CORRECT, CORRECT, CORRECT, CORRECT, ABSENT);
         String attempt = "PAARS";
         Feedback feedback = new Feedback(attempt, marks);
 
-        // Act / Assert
         assertFalse(feedback.isWordGuessed());
 
     }
@@ -45,24 +40,20 @@ class FeedbackTest {
     @Test
     @DisplayName("attempt is valid when none of the marks are invalid")
     void isAttemptValid() {
-        // Arrange
         List<Mark> marks = List.of(CORRECT, CORRECT, CORRECT, CORRECT, ABSENT);
         String attempt = "PAARS";
         Feedback feedback = new Feedback(attempt, marks);
 
-        // Act / Assert
         assertTrue(feedback.isAttemptValid());
     }
 
     @Test
     @DisplayName("attempt is invalid when one/all marks are invalid")
     void isAttemptInvalid() {
-        // Arrange
-        List<Mark> marks = List.of(INVALID, INVALID, INVALID, INVALID, INVALID, INVALID, INVALID);
+        List<Mark> marks = List.of(INVALID, INVALID, INVALID, INVALID, INVALID, INVALID);
         String attempt = "PAARDEN";
         Feedback feedback = new Feedback(attempt, marks);
 
-        // Act / Assert
         assertFalse(feedback.isAttemptValid());
     }
 
@@ -70,36 +61,31 @@ class FeedbackTest {
     @MethodSource("provideHintExamples")
     @DisplayName("provide a correct hint")
     void correctHint(String previousHint, Feedback feedback, String nextHint) {
-        // Arrange / Act / Assert
         assertEquals(nextHint, feedback.giveHint(previousHint));
     }
 
     static Stream<Arguments> provideHintExamples() {
-        // Input
-        String previousHint = "B....";
-
-        String attempt1 = "BERGEN";
-        String attempt2 = "DRAAD";
-        String attempt3 = "BAARD";
+        String invalidAttempt = "BERGEN";
+        String presentAttempt = "DRAAD";
+        String correctAttempt = "BAARD";
 
         List<Mark> marks1 = List.of(INVALID, INVALID, INVALID, INVALID, INVALID, INVALID);
         List<Mark> marks2 = List.of(ABSENT, PRESENT, CORRECT, PRESENT, CORRECT);
         List<Mark> marks3 = List.of(CORRECT, CORRECT, CORRECT, CORRECT, CORRECT);
 
-        Feedback feedback1 = new Feedback(attempt1, marks1);
-        Feedback feedback2 = new Feedback(attempt2, marks2);
-        Feedback feedback3 = new Feedback(attempt3, marks3);
+        Feedback feedback1 = new Feedback(invalidAttempt, marks1);
+        Feedback feedback2 = new Feedback(presentAttempt, marks2);
+        Feedback feedback3 = new Feedback(correctAttempt, marks3);
 
-        // Output
-        String newHint1 = "B....";
-        String newHint2 = "B.A.D";
-        String newHint3 = "BAARD";
-
+        String previousHint = "B....";
+        String invalidHint = "B....";
+        String presentHint = "B.A.D";
+        String correctHint = "BAARD";
 
         return Stream.of(
-                Arguments.of(previousHint, feedback1, newHint1),
-                Arguments.of(newHint1, feedback2, newHint2),
-                Arguments.of(newHint2, feedback3, newHint3)
+                Arguments.of(previousHint, feedback1, invalidHint),
+                Arguments.of(invalidHint, feedback2, presentHint),
+                Arguments.of(presentHint, feedback3, correctHint)
         );
     }
 
