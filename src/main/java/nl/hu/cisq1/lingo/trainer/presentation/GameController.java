@@ -5,7 +5,7 @@ import javassist.NotFoundException;
 import nl.hu.cisq1.lingo.trainer.application.GameService;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
+import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,12 +22,12 @@ public class GameController {
     }
 
     @PostMapping("start")
-    public ProgressPresentationDTO startGame() {
+    public ProgressDTO startGame() {
         return this.service.startGame();
     }
 
     @PostMapping("/{id}/newRound")
-    public ProgressPresentationDTO startRound(@PathVariable("id") Long id) {
+    public ProgressDTO startRound(@PathVariable("id") Long id) {
         try {
             return this.service.startNewRound(id);
         } catch (GameNotFoundException exception) {
@@ -38,7 +38,7 @@ public class GameController {
     }
 
     @GetMapping("/{id}")
-    public ProgressPresentationDTO getGameProgress(@PathVariable("id") Long id) {
+    public ProgressDTO getGameProgress(@PathVariable("id") Long id) {
         try {
             return this.service.getProgress(id);
         } catch (GameNotFoundException exception) {
@@ -47,7 +47,7 @@ public class GameController {
     }
 
     @PostMapping("/{id}/guess")
-    public ProgressPresentationDTO guess(@PathVariable("id") Long id, @RequestParam String attempt) {
+    public ProgressDTO guess(@PathVariable("id") Long id, @RequestParam String attempt) {
         try {
             return this.service.guess(id,attempt);
         } catch (GameNotFoundException exception) {
@@ -58,7 +58,7 @@ public class GameController {
     }
 
     @GetMapping("games")
-    public List<ProgressPresentationDTO> getAllGames() {
+    public List<ProgressDTO> getAllGames() {
         try {
             return this.service.getAllGames();
         } catch (NotFoundException exception) {

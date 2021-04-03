@@ -4,7 +4,7 @@ import javassist.NotFoundException;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
+import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressDTO;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
 import nl.hu.cisq1.lingo.words.domain.Word;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,8 +54,8 @@ class GameServiceTest {
         Mockito.when(wordRepository.findRandomWordByLength(anyInt()))
                 .thenReturn(Optional.of(new Word("tower")));
 
-        ProgressPresentationDTO result = service.startGame();
-        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
+        ProgressDTO result = service.startGame();
+        ProgressDTO expected = convertGameToProgressDTO(game);
 
         assertEquals(expected, result);
     }
@@ -75,12 +75,12 @@ class GameServiceTest {
         Game game = new Game();
         game.startNewRound("tower");
 
-        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
+        ProgressDTO expected = convertGameToProgressDTO(game);
 
         Mockito.when(gameRepository.findById(anyLong()))
                 .thenReturn(Optional.of(game));
 
-        ProgressPresentationDTO result = service.getProgress(anyLong());
+        ProgressDTO result = service.getProgress(anyLong());
 
         assertEquals(expected, result);
     }
@@ -104,10 +104,10 @@ class GameServiceTest {
         Mockito.when(wordRepository.findRandomWordByLength(anyInt()))
                 .thenReturn(Optional.of(new Word("tower")));
 
-        ProgressPresentationDTO result = service.startNewRound(anyLong());
+        ProgressDTO result = service.startNewRound(anyLong());
 
         game.startNewRound("tower");
-        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
+        ProgressDTO expected = convertGameToProgressDTO(game);
 
         assertEquals(expected, result);
     }
@@ -130,10 +130,10 @@ class GameServiceTest {
         Mockito.when(gameRepository.findById(anyLong()))
                 .thenReturn(Optional.of(game));
 
-        ProgressPresentationDTO result = service.guess(anyLong(),"lower");
+        ProgressDTO result = service.guess(anyLong(),"lower");
 
         game.guess("lower");
-        ProgressPresentationDTO expected = convertGameToProgressDTO(game);
+        ProgressDTO expected = convertGameToProgressDTO(game);
 
         assertEquals(expected, result);
     }
@@ -162,8 +162,8 @@ class GameServiceTest {
         assertEquals(1, service.getAllGames().size());
     }
 
-    private static ProgressPresentationDTO convertGameToProgressDTO(Game game) {
-        return new ProgressPresentationDTO.Builder(game.getId())
+    private static ProgressDTO convertGameToProgressDTO(Game game) {
+        return new ProgressDTO.Builder(game.getId())
                 .gameStatus(game.getGameStatus().getStatus())
                 .score(game.getScore())
                 .currentHint(game.getLatestRound().giveHint())

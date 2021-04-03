@@ -4,7 +4,7 @@ import javassist.NotFoundException;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
+import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressDTO;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
 import nl.hu.cisq1.lingo.words.domain.Word;
 import nl.hu.cisq1.lingo.words.domain.exception.WordLengthNotSupportedException;
@@ -27,7 +27,7 @@ public class GameService {
         this.wordRepository = wordRepository;
     }
 
-    public ProgressPresentationDTO startGame() {
+    public ProgressDTO startGame() {
         Game game = new Game();
         Word wordToGuess = wordRepository.findRandomWordByLength(5).orElseThrow(() -> new WordLengthNotSupportedException(5));
         game.startNewRound(wordToGuess.getValue());
@@ -37,12 +37,12 @@ public class GameService {
         return convertGameToProgressDTO(game);
     }
 
-    public ProgressPresentationDTO getProgress(Long id) {
+    public ProgressDTO getProgress(Long id) {
         Game game = getGameById(id);
         return convertGameToProgressDTO(game);
     }
 
-    public ProgressPresentationDTO startNewRound(Long id) {
+    public ProgressDTO startNewRound(Long id) {
         Game game = getGameById(id);
         int wordLength = game.provideNextWordLength();
 
@@ -54,7 +54,7 @@ public class GameService {
         return convertGameToProgressDTO(game);
     }
 
-    public ProgressPresentationDTO guess(Long id, String attempt) {
+    public ProgressDTO guess(Long id, String attempt) {
         Game game = getGameById(id);
         game.guess(attempt);
         this.gameRepository.save(game);
@@ -62,8 +62,8 @@ public class GameService {
         return convertGameToProgressDTO(game);
     }
 
-    public List<ProgressPresentationDTO> getAllGames() throws NotFoundException {
-        List<ProgressPresentationDTO> gamePresentationDTOS = new ArrayList<>();
+    public List<ProgressDTO> getAllGames() throws NotFoundException {
+        List<ProgressDTO> gamePresentationDTOS = new ArrayList<>();
         List<Game> games = this.gameRepository.findAll();
 
         if (games.isEmpty()) {
@@ -81,14 +81,14 @@ public class GameService {
         return this.gameRepository.findById(id).orElseThrow(() -> new GameNotFoundException(id));
     }
 
-    private ProgressPresentationDTO convertGameToProgressDTO(Game game) {
+    private ProgressDTO convertGameToProgressDTO(Game game) {
         if (game.getLatestRound() == null) {
-            return new ProgressPresentationDTO.Builder(game.getId())
+            return new ProgressDTO.Builder(game.getId())
                     .gameStatus(game.getGameStatus().getStatus())
                     .score(game.getScore())
                     .build();
         }
-        return new ProgressPresentationDTO.Builder(game.getId())
+        return new ProgressDTO.Builder(game.getId())
                 .gameStatus(game.getGameStatus().getStatus())
                 .score(game.getScore())
                 .currentHint(game.getLatestRound().giveHint())

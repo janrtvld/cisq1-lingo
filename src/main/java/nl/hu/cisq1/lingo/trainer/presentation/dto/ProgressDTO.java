@@ -5,21 +5,46 @@ import nl.hu.cisq1.lingo.trainer.domain.Feedback;
 import java.util.List;
 import java.util.Objects;
 
-public class ProgressPresentationDTO {
-    public Long id;
-    public String gameStatus;
-    public Integer score;
-    public List<Feedback> feedbackHistory;
-    public String currentHint;
+public class ProgressDTO {
+    private final Long id;
+    private final String gameStatus;
+    private final Integer score;
+    private final List<Feedback> feedbackHistory;
+    private final String currentHint;
 
-    private ProgressPresentationDTO() {
+    private ProgressDTO(Builder builder) {
+        this.id = builder.id;
+        this.gameStatus = builder.gameStatus;
+        this.score = builder.score;
+        this.feedbackHistory = builder.feedbackHistory;
+        this.currentHint = builder.currentHint;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getGameStatus() {
+        return gameStatus;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public List<Feedback> getFeedbackHistory() {
+        return feedbackHistory;
+    }
+
+    public String getCurrentHint() {
+        return currentHint;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ProgressPresentationDTO that = (ProgressPresentationDTO) o;
+        ProgressDTO that = (ProgressDTO) o;
         return Objects.equals(id, that.id) && Objects.equals(gameStatus, that.gameStatus) && Objects.equals(score, that.score) && Objects.equals(feedbackHistory, that.feedbackHistory) && Objects.equals(currentHint, that.currentHint);
     }
 
@@ -29,11 +54,11 @@ public class ProgressPresentationDTO {
     }
 
     public static class Builder {
-        public final Long id;
-        public String gameStatus;
-        public Integer score;
-        public List<Feedback> feedbackHistory;
-        public String currentHint;
+        private final Long id;
+        private String gameStatus;
+        private Integer score;
+        private List<Feedback> feedbackHistory;
+        private String currentHint;
 
         public Builder(Long id) {
             this.id = id;
@@ -41,38 +66,26 @@ public class ProgressPresentationDTO {
 
         public Builder gameStatus(String gameStatus) {
             this.gameStatus = gameStatus;
-
             return this;
         }
 
         public Builder score(Integer score) {
             this.score = score;
-
             return this;
         }
 
-
         public Builder feedbackHistory(List<Feedback> feedbackHistory) {
             this.feedbackHistory = feedbackHistory;
-
             return this;
         }
 
         public Builder currentHint(String currentHint) {
             this.currentHint = currentHint;
-
             return this;
         }
 
-        public ProgressPresentationDTO build() {
-            ProgressPresentationDTO progress = new ProgressPresentationDTO();
-            progress.id = this.id;
-            progress.gameStatus = this.gameStatus;
-            progress.score = this.score;
-            progress.feedbackHistory = this.feedbackHistory;
-            progress.currentHint = this.currentHint;
-
-            return progress;
+        public ProgressDTO build() {
+            return new ProgressDTO(this);
         }
     }
 }
