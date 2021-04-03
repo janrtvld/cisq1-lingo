@@ -25,7 +25,6 @@ public class Round {
     private Integer attempts = 0;
     private String lastHint;
 
-
     public Round() {}
     public Round(String wordToGuess) {
         this.wordToGuess = wordToGuess;
@@ -36,17 +35,23 @@ public class Round {
         if(attemptLimitReached()) {
             throw new AttemptLimitReachedException(attempts);
         }
-        List<Mark> marks = new ArrayList<Mark>();
+        createFeedback(attempt);
+        attempts++;
+    }
+
+    private void createFeedback(String attempt) {
+        List<Mark> marks = new ArrayList<>();
 
         for (int i = 0; i < wordToGuess.length(); i++) {
-            if (attemptLengthInvalid(attempt)) {
+            Character character = attempt.charAt(i);
+            if (attemptInvalid(attempt)) {
                 marks.add(Mark.INVALID);
                 continue;
             }
-            if (wordToGuess.indexOf(attempt.charAt(i)) != -1) {
-                if (attempt.charAt(i) == wordToGuess.charAt(i)) {
+            if (characterInWordToGuess(character)) {
+                if (characterCorrect(character, i)) {
                     marks.add(Mark.CORRECT);
-                } else if (attempt.charAt(wordToGuess.indexOf(attempt.charAt(i))) == wordToGuess.charAt(wordToGuess.indexOf(attempt.charAt(i)))) {
+                } else if (characterAlreadyMarked(attempt, i)) {
                     marks.add(Mark.ABSENT);
                 } else {
                     marks.add(Mark.PRESENT);
@@ -55,20 +60,28 @@ public class Round {
                 marks.add(Mark.ABSENT);
             }
         }
-        attempts++;
         feedbackHistory.add(new Feedback(attempt,marks));
     }
 
-    private boolean attemptLengthInvalid(String attempt) {
+    private boolean characterInWordToGuess(Character character) {
+        return wordToGuess.indexOf(character) != -1;
+    }
+
+    private boolean characterCorrect(Character character, Integer index) {
+        return wordToGuess.charAt(index) == character;
+    }
+
+    private boolean characterAlreadyMarked(String attempt, Integer index) {
+        return attempt.charAt(wordToGuess.indexOf(attempt.charAt(index))) == wordToGuess.charAt(wordToGuess.indexOf(attempt.charAt(index)));
+    }
+
+    private boolean attemptInvalid(String attempt) {
         return attempt.length() != wordToGuess.length();
     }
 
     private String getBaseHint() {
-        StringBuilder baseHint = new StringBuilder();
-        baseHint.append(wordToGuess.charAt(0));
-        baseHint.append(".".repeat(wordToGuess.length() - 1));
-
-        return baseHint.toString();
+        return wordToGuess.charAt(0) +
+                ".".repeat(wordToGuess.length() - 1);
     }
 
     public String giveHint() {
