@@ -5,7 +5,7 @@ import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.GameStatus;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressPresentationDTO;
+import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,19 +45,19 @@ class GameServiceIntegrationTest {
     @Test
     @DisplayName("starting a game starts a new round")
     void startGameCreatesNewGame() {
-        ProgressPresentationDTO progress = this.service.startGame();
+        ProgressDTO progress = this.service.startGame();
 
-        assertEquals( GameStatus.PLAYING.getStatus(), progress.gameStatus);
-        assertEquals( 0, progress.score);
-        assertEquals( 5, progress.currentHint.length());
-        assertEquals( 0, progress.feedbackHistory.size());
+        assertEquals( GameStatus.PLAYING.getStatus(), progress.getGameStatus());
+        assertEquals( 0, progress.getScore());
+        assertEquals( 5, progress.getCurrentHint().length());
+        assertEquals( 0, progress.getFeedbackHistory().size());
     }
 
     @Test
     @DisplayName("cannot start a new round when still playing")
     void cannotStartNewRoundWhenPlaying() {
-        ProgressPresentationDTO progress = this.service.startGame();
-        Long id = progress.id;
+        ProgressDTO progress = this.service.startGame();
+        Long id = progress.getId();
 
         assertThrows(GameStateException.class, () -> this.service.startNewRound(id));
     }
@@ -65,8 +65,8 @@ class GameServiceIntegrationTest {
     @Test
     @DisplayName("cannot start new round when player is eliminated")
     void cannotStartNewRoundWhenPlayerEliminated() {
-        ProgressPresentationDTO progress = this.service.startGame();
-        Long id = progress.id;
+        ProgressDTO progress = this.service.startGame();
+        Long id = progress.getId();
 
         this.service.guess(id,"L");
         this.service.guess(id,"L");
@@ -80,19 +80,19 @@ class GameServiceIntegrationTest {
     @Test
     @DisplayName("playing an attempt returns newly created feedback in progress")
     void guessIsPlayed() {
-        ProgressPresentationDTO progress = this.service.startGame();
-        Long id = progress.id;
+        ProgressDTO progress = this.service.startGame();
+        Long id = progress.getId();
 
-        ProgressPresentationDTO actual = this.service.guess(id,"PIZZA");
+        ProgressDTO actual = this.service.guess(id,"PIZZA");
 
-        assertEquals( 1, actual.feedbackHistory.size());
+        assertEquals( 1, actual.getFeedbackHistory().size());
     }
 
     @Test
     @DisplayName("cannot play guess if player has been eliminated")
     void cannotGuessIfPlayerIsEliminated() {
-        ProgressPresentationDTO progress = this.service.startGame();
-        Long id = progress.id;
+        ProgressDTO progress = this.service.startGame();
+        Long id = progress.getId();
 
         this.service.guess(id,"L");
         this.service.guess(id,"L");
@@ -106,22 +106,22 @@ class GameServiceIntegrationTest {
     @ParameterizedTest
     @DisplayName("getting progress of game returns the current state of the game")
     @MethodSource("randomGameExamples")
-    void getProgressReturnsCurrentGameState(Game game, ProgressPresentationDTO progress) {
-        assertEquals(progress.feedbackHistory, game.getLatestRound().getFeedbackHistory());
-        assertEquals(progress.currentHint, game.getLatestRound().giveHint());
-        assertEquals(progress.score, game.getScore());
-        assertEquals(progress.id, game.getId());
+    void getProgressReturnsCurrentGameState(Game game, ProgressDTO progress) {
+        assertEquals(progress.getFeedbackHistory(), game.getLatestRound().getFeedbackHistory());
+        assertEquals(progress.getCurrentHint(), game.getLatestRound().giveHint());
+        assertEquals(progress.getScore(), game.getScore());
+        assertEquals(progress.getId(), game.getId());
     }
 
     static Stream<Arguments> randomGameExamples() {
         Game gameWithPlayingRound = new Game();
         gameWithPlayingRound.startNewRound("tower");
-        ProgressPresentationDTO gameWithPlayingRoundProgress = convertGameToProgressDTO(gameWithPlayingRound);
+        ProgressDTO gameWithPlayingRoundProgress = convertGameToProgressDTO(gameWithPlayingRound);
 
         Game gameWithWordGuessed = new Game();
         gameWithWordGuessed.startNewRound("tower");
         gameWithWordGuessed.guess("tower");
-        ProgressPresentationDTO gameWithWordGuessedProgress = convertGameToProgressDTO(gameWithWordGuessed);
+        ProgressDTO gameWithWordGuessedProgress = convertGameToProgressDTO(gameWithWordGuessed);
 
         Game gameWithPlayerEliminated = new Game();
         gameWithPlayerEliminated.startNewRound("tower");
@@ -130,7 +130,7 @@ class GameServiceIntegrationTest {
         gameWithPlayerEliminated.guess("stupid");
         gameWithPlayerEliminated.guess("stupid");
         gameWithPlayerEliminated.guess("stupid");
-        ProgressPresentationDTO gameWithPlayerEliminatedProgress = convertGameToProgressDTO(gameWithPlayerEliminated);
+        ProgressDTO gameWithPlayerEliminatedProgress = convertGameToProgressDTO(gameWithPlayerEliminated);
 
         return Stream.of(
                 Arguments.of(gameWithPlayingRound, gameWithPlayingRoundProgress),
@@ -139,8 +139,8 @@ class GameServiceIntegrationTest {
         );
     }
 
-    private static ProgressPresentationDTO convertGameToProgressDTO(Game game) {
-        return new ProgressPresentationDTO.Builder(game.getId())
+    private static ProgressDTO convertGameToProgressDTO(Game game) {
+        return new ProgressDTO.Builder(game.getId())
                 .score(game.getScore())
                 .currentHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())
