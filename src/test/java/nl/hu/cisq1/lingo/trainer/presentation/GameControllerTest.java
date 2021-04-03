@@ -49,7 +49,7 @@ class GameControllerTest {
         MockHttpServletResponse response = mockMvc.perform(newGameRequest).andReturn().getResponse();
         Integer gameId = JsonPath.read(response.getContentAsString(), "$.id");
 
-        String attempt = "LOSER";
+        String attempt = "X";
 
         RequestBuilder guessRequest = MockMvcRequestBuilders
                 .post("/lingo/" + gameId + "/guess")

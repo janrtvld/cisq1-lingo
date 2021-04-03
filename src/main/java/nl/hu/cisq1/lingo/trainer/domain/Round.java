@@ -19,7 +19,7 @@ public class Round {
     @OneToMany
     @JoinColumn
     @Cascade(CascadeType.ALL)
-    private final List<Feedback> feedbackHistory = new ArrayList<Feedback>();
+    private final List<Feedback> feedbackHistory = new ArrayList<>();
 
     private String wordToGuess;
     private Integer attempts = 0;
@@ -43,11 +43,11 @@ public class Round {
         List<Mark> marks = new ArrayList<>();
 
         for (int i = 0; i < wordToGuess.length(); i++) {
-            Character character = attempt.charAt(i);
             if (attemptInvalid(attempt)) {
                 marks.add(Mark.INVALID);
                 continue;
             }
+            Character character = attempt.charAt(i);
             if (characterInWordToGuess(character)) {
                 if (characterCorrect(character, i)) {
                     marks.add(Mark.CORRECT);

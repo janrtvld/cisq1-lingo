@@ -42,10 +42,6 @@ class GameServiceIntegrationTest {
     @Autowired
     private SpringGameRepository repository;
 
-    //TODO GameIntegrationTests
-    // * This integration test integrates between the service layer,
-    // * the data layer and the framework.
-
     @Test
     @DisplayName("starting a game starts a new round")
     void startGameCreatesNewGame() {

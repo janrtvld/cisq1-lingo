@@ -36,7 +36,7 @@ class GameServiceTest {
     private GameService service;
 
     @BeforeEach
-    @DisplayName("init")
+    @DisplayName("initiate mocks and service for tests")
     void init() {
         gameRepository = Mockito.mock(SpringGameRepository.class);
         wordRepository = Mockito.mock(SpringWordRepository.class);
@@ -95,7 +95,7 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("New round returns the new progress with the just created round")
+    @DisplayName("New round returns the new progress with the created round")
     void newRoundReturnsGameProgress() {
         Game game = new Game();
 
@@ -122,8 +122,8 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("Guess returns the new progress with the feedback of the done attempt")
-    void guessIsSavedInGameProgress() {
+    @DisplayName("Guess returns the new progress with the processed guess")
+    void guessIsReturnedInGameProgress() {
         Game game = new Game();
         game.startNewRound("tower");
 
@@ -141,7 +141,6 @@ class GameServiceTest {
     @Test
     @DisplayName("throw exception by no games found")
     void allGamesEmptyException() {
-        // Arrange / Act / Assert
         List<Game> gameList = new ArrayList<>();
         Mockito.when(gameRepository.findAll())
                 .thenReturn(gameList);
@@ -150,7 +149,7 @@ class GameServiceTest {
     }
 
     @Test
-    @DisplayName("All games returns a list of games")
+    @DisplayName("return a list of games")
     void allGamesReturnsListOfGames() throws NotFoundException {
         Game game = new Game();
         game.startNewRound("GRAAL");
@@ -162,7 +161,6 @@ class GameServiceTest {
 
         assertEquals(1, service.getAllGames().size());
     }
-
 
     private static ProgressPresentationDTO convertGameToProgressDTO(Game game) {
         return new ProgressPresentationDTO.Builder(game.getId())

@@ -1,6 +1,5 @@
 package nl.hu.cisq1.lingo.trainer.presentation;
 
-import com.jayway.jsonpath.JsonPath;
 import nl.hu.cisq1.lingo.CiTestConfiguration;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
@@ -13,8 +12,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -260,7 +257,6 @@ class GameControllerIntegrationTest {
                 .thenReturn(Optional.of(game));
 
         String attempt = "baars";
-
 
         RequestBuilder request = MockMvcRequestBuilders
                 .post("/lingo/0/guess")
