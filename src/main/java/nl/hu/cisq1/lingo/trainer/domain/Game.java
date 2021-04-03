@@ -28,6 +28,7 @@ public class Game {
     private int score = 0;
 
     public Game() {
+        // Hibernate needs no-arg constructor;
     }
 
     public void startNewRound(String wordToGuess) {
