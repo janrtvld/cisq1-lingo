@@ -1,6 +1,7 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.AttemptLimitReachedException;
+import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,9 +43,9 @@ class RoundTest {
         round.guess("BAKEN");
         round.guess("BAKEN");
 
-        assertThrows(AttemptLimitReachedException.class, () -> {
-            round.guess("BAKEN");
-        });
+        assertThrows(AttemptLimitReachedException.class, () ->
+            round.guess("BAKEN")
+        );
     }
 
     @Test
@@ -96,6 +97,15 @@ class RoundTest {
 
         assertEquals(2,round.getFeedbackHistory().size());
     }
+
+    @Test
+    @DisplayName("throws exception if there is no feedback")
+    void throwExceptionByNoFeedback() {
+        assertThrows(NoFeedbackFoundException.class, () ->
+            round.getLastFeedback()
+        );
+    }
+
 
     @ParameterizedTest
     @MethodSource("provideWordLengthExamples")

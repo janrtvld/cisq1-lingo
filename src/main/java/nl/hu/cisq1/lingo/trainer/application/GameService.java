@@ -82,19 +82,12 @@ public class GameService {
     }
 
     private ProgressDTO convertGameToProgressDTO(Game game) {
-        if (game.getLatestRound() == null) {
-            return new ProgressDTO.Builder(game.getId())
-                    .gameStatus(game.getGameStatus().getStatus())
-                    .score(game.getScore())
-                    .build();
-        }
         return new ProgressDTO.Builder(game.getId())
                 .gameStatus(game.getGameStatus().getStatus())
                 .score(game.getScore())
                 .currentHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())
                 .build();
-
     }
 
 }
