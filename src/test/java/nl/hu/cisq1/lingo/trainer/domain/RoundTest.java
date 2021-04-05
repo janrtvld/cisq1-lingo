@@ -134,7 +134,7 @@ class RoundTest {
     @ParameterizedTest
     @MethodSource("provideFeedbackExamples")
     @DisplayName("provide the correct Feedback")
-    void generateFeedback(String attempt, Feedback feedback) {
+    void generateFeedback(Round round, String attempt, Feedback feedback) {
         round.guess(attempt);
 
         assertEquals(feedback,round.getLastFeedback());
@@ -142,31 +142,35 @@ class RoundTest {
 
     static Stream<Arguments> provideFeedbackExamples() {
         // Input
-        String attempt1 = "BERGEN";
-        String attempt2 = "BONJE";
-        String attempt3 = "BARST";
-        String attempt4 = "DRAAD";
-        String attempt5 = "BAARD";
+        Round round1 = new Round("BAARD");
+        Round round2 = new Round("ABBBBB");
+        Round round3 = new Round("WOLOLOO");
 
         List<Mark> marks1 = List.of(INVALID, INVALID, INVALID, INVALID, INVALID);
         List<Mark> marks2 = List.of(CORRECT, ABSENT, ABSENT, ABSENT, ABSENT);
         List<Mark> marks3 = List.of(CORRECT, CORRECT, PRESENT, ABSENT, ABSENT);
         List<Mark> marks4 = List.of(ABSENT, PRESENT, CORRECT, PRESENT, CORRECT);
         List<Mark> marks5 = List.of(CORRECT, CORRECT, CORRECT, CORRECT, CORRECT);
+        List<Mark> marks6 = List.of(PRESENT, PRESENT, ABSENT, ABSENT, ABSENT,ABSENT);
+        List<Mark> marks7 = List.of(PRESENT, ABSENT, PRESENT, ABSENT, PRESENT,ABSENT,CORRECT);
 
         // Output
-        Feedback feedback1 = new Feedback(attempt1, marks1);
-        Feedback feedback2 = new Feedback(attempt2, marks2);
-        Feedback feedback3 = new Feedback(attempt3, marks3);
-        Feedback feedback4 = new Feedback(attempt4, marks4);
-        Feedback feedback5 = new Feedback(attempt5, marks5);
+        Feedback feedback1 = new Feedback("BERGEN", marks1);
+        Feedback feedback2 = new Feedback("BONJE", marks2);
+        Feedback feedback3 = new Feedback("BARST", marks3);
+        Feedback feedback4 = new Feedback("DRAAD", marks4);
+        Feedback feedback5 = new Feedback("BAARD", marks5);
+        Feedback feedback6 = new Feedback("BAAAAA", marks6);
+        Feedback feedback7 = new Feedback("ONONOMO", marks7);
 
         return Stream.of(
-                Arguments.of(attempt1, feedback1),
-                Arguments.of(attempt2, feedback2),
-                Arguments.of(attempt3, feedback3),
-                Arguments.of(attempt4, feedback4),
-                Arguments.of(attempt5, feedback5)
+                Arguments.of(round1,"BERGEN", feedback1),
+                Arguments.of(round1,"BONJE", feedback2),
+                Arguments.of(round1,"BARST", feedback3),
+                Arguments.of(round1,"DRAAD", feedback4),
+                Arguments.of(round1,"BAARD", feedback5),
+                Arguments.of(round2,"BAAAAA", feedback6),
+                Arguments.of(round3,"ONONOMO", feedback7)
         );
     }
 

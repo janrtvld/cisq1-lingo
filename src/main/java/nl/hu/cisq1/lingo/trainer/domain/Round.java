@@ -6,9 +6,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Entity
 public class Round {
@@ -42,37 +40,35 @@ public class Round {
     private void createFeedback(String attempt) {
         List<Mark> marks = new ArrayList<>();
 
-        for (int i = 0; i < wordToGuess.length(); i++) {
-            if (attemptInvalid(attempt)) {
+        char[] attemptCharArray = attempt.toCharArray();
+        char[] solutionCharArray = wordToGuess.toCharArray();
+
+        if (attemptInvalid(attempt)) {
+            for (int i = 0; i < wordToGuess.length(); i++) {
                 marks.add(Mark.INVALID);
-                continue;
             }
-            Character character = attempt.charAt(i);
-            if (characterInWordToGuess(character)) {
-                if (characterCorrect(character, i)) {
-                    marks.add(Mark.CORRECT);
-                } else if (characterAlreadyMarked(attempt, i)) {
-                    marks.add(Mark.ABSENT);
-                } else {
-                    marks.add(Mark.PRESENT);
-                }
-            } else {
-                marks.add(Mark.ABSENT);
+            feedbackHistory.add(new Feedback(attempt,marks));
+            return;
+        }
+
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            marks.add(Mark.ABSENT);
+            if (attemptCharArray[i] == solutionCharArray[i]) {
+                marks.set(i, Mark.CORRECT);
+                solutionCharArray[i] = '!';
             }
         }
+
+        for (int i = 0; i < wordToGuess.length(); i++) {
+            for (int j = 0; j < wordToGuess.length(); j++) {
+                if (attemptCharArray[i] == solutionCharArray[j] && marks.get(i) == Mark.ABSENT) {
+                    marks.set(i, Mark.PRESENT);
+                    solutionCharArray[j] = '!';
+                }
+            }
+        }
+
         feedbackHistory.add(new Feedback(attempt,marks));
-    }
-
-    private boolean characterInWordToGuess(Character character) {
-        return wordToGuess.indexOf(character) != -1;
-    }
-
-    private boolean characterCorrect(Character character, Integer index) {
-        return wordToGuess.charAt(index) == character;
-    }
-
-    private boolean characterAlreadyMarked(String attempt, Integer index) {
-        return attempt.charAt(wordToGuess.indexOf(attempt.charAt(index))) == wordToGuess.charAt(wordToGuess.indexOf(attempt.charAt(index)));
     }
 
     private boolean attemptInvalid(String attempt) {
