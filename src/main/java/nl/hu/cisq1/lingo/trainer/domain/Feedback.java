@@ -44,14 +44,6 @@ public class Feedback {
         return marks.stream().noneMatch(mark -> mark == Mark.INVALID);
     }
 
-    public String getAttempt() {
-        return attempt;
-    }
-
-    public List<Mark> getMarks() {
-        return marks;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
