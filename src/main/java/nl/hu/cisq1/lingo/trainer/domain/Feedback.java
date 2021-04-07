@@ -1,10 +1,14 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 import java.util.List;
-import java.util.Objects;
 
 @Entity
+@EqualsAndHashCode
+@NoArgsConstructor
 public class Feedback {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -15,7 +19,6 @@ public class Feedback {
     @ElementCollection
     private List<Mark> marks;
 
-    public Feedback(){}
     public Feedback(String attempt, List<Mark> marks) {
         this.attempt = attempt;
         this.marks = marks;
@@ -44,16 +47,4 @@ public class Feedback {
         return marks.stream().noneMatch(mark -> mark == Mark.INVALID);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Feedback feedback = (Feedback) o;
-        return Objects.equals(id, feedback.id) && Objects.equals(attempt, feedback.attempt) && Objects.equals(marks, feedback.marks);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, attempt, marks);
-    }
 }

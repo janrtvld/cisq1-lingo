@@ -20,8 +20,8 @@ class GameTest {
     private Game game;
 
     @BeforeEach
-    @DisplayName("initiate game for tests")
-    void init() {
+    @DisplayName("initiate game for before each test")
+    void beforeEachTest() {
         game = new Game();
     }
 
@@ -30,10 +30,9 @@ class GameTest {
     void cannotStartRoundWhenCurrentRoundIsOpen() {
         game.startNewRound("BAARD");
 
-        // Act / Assert
-        assertThrows(GameStateException.class, () -> {
-            game.startNewRound("BAARD");
-        });
+        assertThrows(GameStateException.class, () ->
+            game.startNewRound("BAARD")
+        );
     }
 
     @Test
@@ -46,9 +45,9 @@ class GameTest {
         game.guess("BAREN");
         game.guess("BAREN");
 
-        assertThrows(GameStateException.class, () -> {
-            game.startNewRound("BLOEM");
-        });
+        assertThrows(GameStateException.class, () ->
+            game.startNewRound("BLOEM")
+        );
     }
 
     @Test
@@ -71,17 +70,17 @@ class GameTest {
     @Test
     @DisplayName("Latest round throws error if game has no rounds")
     void noActiveRoundsException() {
-        assertThrows(GameStateException.class, () -> {
-            game.getLatestRound();
-        });
+        assertThrows(GameStateException.class, () ->
+            game.getLatestRound()
+        );
     }
 
     @Test
     @DisplayName("guess can not be made if the game has no open round")
     void cannotGuessWhenNoRound() {
-        assertThrows(GameStateException.class, () -> {
-            game.guess("BAREN");
-        });
+        assertThrows(GameStateException.class, () ->
+            game.guess("BAREN")
+        );
     }
 
     @Test
@@ -94,9 +93,9 @@ class GameTest {
         game.guess("BAREN");
         game.guess("BAREN");
 
-        assertThrows(GameStateException.class, () -> {
-            game.guess("BAREN");
-        });
+        assertThrows(GameStateException.class, () ->
+            game.guess("BAREN")
+        );
     }
 
     @Test

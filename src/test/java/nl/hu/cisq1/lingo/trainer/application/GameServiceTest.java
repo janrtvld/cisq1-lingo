@@ -4,7 +4,7 @@ import javassist.NotFoundException;
 import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameNotFoundException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressDTO;
+import nl.hu.cisq1.lingo.trainer.application.dto.ProgressDTO;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
 import nl.hu.cisq1.lingo.words.domain.Word;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,9 +25,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
  * This is a unit test.
  *
  * It tests the behaviors of our system under test,
- * WordService, in complete isolation:
+ * GameService, in complete isolation:
  * - its methods are called by the test framework instead of a controller
- * - the WordService calls a test double instead of an actual repository
+ * - the GameService calls a test double instead of an actual repository
  */
 class GameServiceTest {
 
