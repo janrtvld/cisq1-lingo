@@ -104,7 +104,6 @@ class GameControllerIntegrationTest {
 
         mockMvc.perform(request)
                 .andExpect(status().isNotFound());
-
     }
 
     @Test
@@ -146,7 +145,6 @@ class GameControllerIntegrationTest {
 
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
-
     }
 
     @Test

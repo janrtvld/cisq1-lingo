@@ -1,5 +1,7 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
@@ -12,24 +14,22 @@ import static nl.hu.cisq1.lingo.trainer.domain.GameStatus.*;
 
 @Entity
 @Table(name = "game")
+@NoArgsConstructor
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    @Getter private Long id;
 
     @Enumerated(EnumType.STRING)
-    private GameStatus gameStatus = WAITING_FOR_ROUND;
+    @Getter private GameStatus gameStatus = WAITING_FOR_ROUND;
 
     @OneToMany
     @JoinColumn
     @Cascade(CascadeType.ALL)
     private final List<Round> rounds = new ArrayList<>();
 
-    private int score = 0;
+    @Getter private int score = 0;
 
-    public Game() {
-        // Hibernate needs no-arg constructor
-    }
 
     public void startNewRound(String wordToGuess) {
         if (gameStatus != WAITING_FOR_ROUND) {
@@ -83,18 +83,6 @@ public class Game {
 
     public boolean isPlaying() {
         return gameStatus == PLAYING;
-    }
-
-    public int getScore() {
-        return score;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public GameStatus getGameStatus() {
-        return gameStatus;
     }
 
 }

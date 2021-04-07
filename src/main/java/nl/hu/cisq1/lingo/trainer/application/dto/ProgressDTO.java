@@ -1,16 +1,19 @@
-package nl.hu.cisq1.lingo.trainer.presentation.dto;
+package nl.hu.cisq1.lingo.trainer.application.dto;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import nl.hu.cisq1.lingo.trainer.domain.Feedback;
 
 import java.util.List;
-import java.util.Objects;
 
+@EqualsAndHashCode
 public class ProgressDTO {
-    private final Long id;
-    private final String gameStatus;
-    private final Integer score;
-    private final List<Feedback> feedbackHistory;
-    private final String currentHint;
+
+    @Getter private final Long id;
+    @Getter private final String gameStatus;
+    @Getter private final Integer score;
+    @Getter private final List<Feedback> feedbackHistory;
+    @Getter private final String currentHint;
 
     private ProgressDTO(Builder builder) {
         this.id = builder.id;
@@ -18,39 +21,6 @@ public class ProgressDTO {
         this.score = builder.score;
         this.feedbackHistory = builder.feedbackHistory;
         this.currentHint = builder.currentHint;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getGameStatus() {
-        return gameStatus;
-    }
-
-    public Integer getScore() {
-        return score;
-    }
-
-    public List<Feedback> getFeedbackHistory() {
-        return feedbackHistory;
-    }
-
-    public String getCurrentHint() {
-        return currentHint;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ProgressDTO that = (ProgressDTO) o;
-        return Objects.equals(id, that.id) && Objects.equals(gameStatus, that.gameStatus) && Objects.equals(score, that.score) && Objects.equals(feedbackHistory, that.feedbackHistory) && Objects.equals(currentHint, that.currentHint);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, gameStatus, score, feedbackHistory, currentHint);
     }
 
     public static class Builder {

@@ -21,8 +21,8 @@ class RoundTest {
     private Round round;
 
     @BeforeEach
-    @DisplayName("initiate round for tests")
-    void init() {
+    @DisplayName("initiate round before each test")
+    void beforeEachTest() {
         round = new Round("BAARD");
     }
 

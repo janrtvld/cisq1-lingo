@@ -5,7 +5,7 @@ import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.GameStatus;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
-import nl.hu.cisq1.lingo.trainer.presentation.dto.ProgressDTO;
+import nl.hu.cisq1.lingo.trainer.application.dto.ProgressDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -139,14 +139,6 @@ class GameServiceIntegrationTest {
         );
     }
 
-    private static ProgressDTO convertGameToProgressDTO(Game game) {
-        return new ProgressDTO.Builder(game.getId())
-                .score(game.getScore())
-                .currentHint(game.getLatestRound().giveHint())
-                .feedbackHistory(game.getLatestRound().getFeedbackHistory())
-                .build();
-    }
-
     @ParameterizedTest
     @DisplayName("next word length is based on current word to guess")
     @MethodSource("wordLengthExamples")
@@ -165,6 +157,13 @@ class GameServiceIntegrationTest {
         );
     }
 
+    private static ProgressDTO convertGameToProgressDTO(Game game) {
+        return new ProgressDTO.Builder(game.getId())
+                .score(game.getScore())
+                .currentHint(game.getLatestRound().giveHint())
+                .feedbackHistory(game.getLatestRound().getFeedbackHistory())
+                .build();
+    }
 }
 
 
