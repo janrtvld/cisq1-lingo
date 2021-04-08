@@ -6,6 +6,9 @@ import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.GameStatus;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
 import nl.hu.cisq1.lingo.trainer.application.dto.ProgressDTO;
+import nl.hu.cisq1.lingo.words.domain.Word;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,11 +16,15 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -39,8 +46,24 @@ class GameServiceIntegrationTest {
     @Autowired
     private GameService service;
 
-    @Autowired
+    @MockBean
     private SpringGameRepository repository;
+
+    @BeforeEach
+    @DisplayName("initiate game for tests")
+    void beforeEachTest() {
+        this.repository.deleteAll();
+        Game game = new Game();
+        game.startNewRound("baard");
+        when(repository.findById(anyLong()))
+                .thenReturn(Optional.of(game));
+    }
+
+    @AfterEach
+    @DisplayName("clear repository")
+    void afterEachTest() {
+        this.repository.deleteAll();
+    }
 
     @Test
     @DisplayName("starting a game starts a new round")
@@ -56,34 +79,25 @@ class GameServiceIntegrationTest {
     @Test
     @DisplayName("cannot start a new round when still playing")
     void cannotStartNewRoundWhenPlaying() {
-        ProgressDTO progress = this.service.startGame();
-        Long id = progress.getId();
-
-        assertThrows(GameStateException.class, () -> this.service.startNewRound(id));
+        assertThrows(GameStateException.class, () -> this.service.startNewRound(0L));
     }
 
     @Test
     @DisplayName("cannot start new round when player is eliminated")
     void cannotStartNewRoundWhenPlayerEliminated() {
-        ProgressDTO progress = this.service.startGame();
-        Long id = progress.getId();
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
 
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-
-        assertThrows(GameStateException.class, () -> this.service.startNewRound(id));
+        assertThrows(GameStateException.class, () -> this.service.startNewRound(0L));
     }
 
     @Test
     @DisplayName("playing an attempt returns newly created feedback in progress")
     void guessIsPlayed() {
-        ProgressDTO progress = this.service.startGame();
-        Long id = progress.getId();
-
-        ProgressDTO actual = this.service.guess(id,"PIZZA");
+        ProgressDTO actual = this.service.guess(0L,"PIZZA");
 
         assertEquals( 1, actual.getFeedbackHistory().size());
     }
@@ -91,16 +105,13 @@ class GameServiceIntegrationTest {
     @Test
     @DisplayName("cannot play guess if player has been eliminated")
     void cannotGuessIfPlayerIsEliminated() {
-        ProgressDTO progress = this.service.startGame();
-        Long id = progress.getId();
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
+        this.service.guess(0L,"L");
 
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-        this.service.guess(id,"L");
-
-        assertThrows(GameStateException.class, () -> this.service.guess(id,"L"));
+        assertThrows(GameStateException.class, () -> this.service.guess(0L,"L"));
     }
 
     @ParameterizedTest

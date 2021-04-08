@@ -5,6 +5,8 @@ import nl.hu.cisq1.lingo.trainer.data.SpringGameRepository;
 import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.words.data.SpringWordRepository;
 import nl.hu.cisq1.lingo.words.domain.Word;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,24 @@ class GameControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private Game game;
+
+    @BeforeEach
+    @DisplayName("initiate game for tests")
+    void beforeEachTest() {
+        this.gameRepository.deleteAll();
+        Game game = new Game();
+        game.startNewRound("baard");
+        this.game = game;
+        when(gameRepository.findById(0L))
+                .thenReturn(Optional.of(game));
+    }
+
+    @AfterEach
+    void afterEachTest() {
+        this.gameRepository.deleteAll();
+    }
+
     @Test
     @DisplayName("start a new game")
     void startNewGame() throws Exception {
@@ -73,12 +93,8 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("start a new round")
     void startNewRound() throws Exception {
-        Game game = new Game();
-        game.startNewRound("baard");
         game.guess("baard");
 
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
         when(wordRepository.findRandomWordByLength(6))
                 .thenReturn(Optional.of(new Word("hoeden")));
 
@@ -100,7 +116,7 @@ class GameControllerIntegrationTest {
     @DisplayName("cannot start new round if game not found")
     void cannotStartRound() throws Exception {
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/newRound");
+                .post("/lingo/1/newRound");
 
         mockMvc.perform(request)
                 .andExpect(status().isNotFound());
@@ -109,11 +125,6 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot start new round if still playing")
     void cannotStartRoundWhenPlaying() throws Exception {
-        Game game = new Game();
-        game.startNewRound("baard");
-
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
         when(wordRepository.findRandomWordByLength(6))
                 .thenReturn(Optional.of(new Word("hoeden")));
 
@@ -127,16 +138,12 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot start new round if player is eliminated")
     void cannotStartRoundWhenEliminated() throws Exception {
-        Game game = new Game();
-        game.startNewRound("baard");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
 
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
         when(wordRepository.findRandomWordByLength(6))
                 .thenReturn(Optional.of(new Word("hoeden")));
 
@@ -150,12 +157,7 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("get progress of playing game")
     void getProgressOfGame() throws Exception {
-        Game game = new Game();
-        game.startNewRound("baard");
         game.guess("baars");
-
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
 
         RequestBuilder request = MockMvcRequestBuilders
                 .get("/lingo/0");
@@ -174,11 +176,8 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot get progress if game not found")
     void cannotGetProgress() throws Exception {
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.empty());
-
         RequestBuilder request = MockMvcRequestBuilders
-                .get("/lingo/0");
+                .get("/lingo/1");
 
         mockMvc.perform(request)
                 .andExpect(status().isNotFound());
@@ -187,16 +186,11 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot guess if player is eliminated")
     void cannotGuessWhenEliminated() throws Exception {
-        Game game = new Game();
-        game.startNewRound("baard");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
-
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
 
         String attempt = "LOSER";
 
@@ -211,12 +205,7 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot guess if round ended")
     void cannotGuessWhenNoRound() throws Exception {
-        Game game = new Game();
-        game.startNewRound("baard");
         game.guess("baard");
-
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
 
         String attempt = "LOSER";
 
@@ -231,13 +220,10 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot guess if game is not found")
     void cannotGuessWhenNoGame() throws Exception {
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.empty());
-
         String attempt = "LOSER";
 
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/guess")
+                .post("/lingo/1/guess")
                 .param("attempt", attempt);
 
         mockMvc.perform(request)
@@ -248,12 +234,6 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("guess provides new hint")
     void guessProvidesNewHint() throws Exception {
-        Game game = new Game();
-        game.startNewRound("baard");
-
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
-
         String attempt = "baars";
 
         RequestBuilder request = MockMvcRequestBuilders
@@ -270,9 +250,7 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot get games if there are none")
     void cannotGetGamesIfNoGames() throws Exception {
-        List<Game> games = new ArrayList<>();
-        when(gameRepository.findAll())
-                .thenReturn(games);
+        this.gameRepository.deleteAll();
 
         RequestBuilder request = MockMvcRequestBuilders
                 .get("/lingo/games");
@@ -284,13 +262,8 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("all games are provided")
     void allGamesAreProvided() throws Exception {
-        List<Game> games = new ArrayList<>();
-        Game game = new Game();
-        game.startNewRound("baard");
-        games.add(game);
-
         when(gameRepository.findAll())
-                .thenReturn(games);
+                .thenReturn(List.of(game));
 
         RequestBuilder request = MockMvcRequestBuilders
                 .get("/lingo/games");

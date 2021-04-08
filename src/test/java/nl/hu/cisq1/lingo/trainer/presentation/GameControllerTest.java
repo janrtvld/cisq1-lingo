@@ -2,6 +2,8 @@ package nl.hu.cisq1.lingo.trainer.presentation;
 
 import com.jayway.jsonpath.JsonPath;
 import nl.hu.cisq1.lingo.CiTestConfiguration;
+import nl.hu.cisq1.lingo.trainer.domain.Game;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,13 +27,18 @@ class GameControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private RequestBuilder startGameRequest;
+
+    @BeforeEach
+    void beforeEachTest() {
+        this.startGameRequest = MockMvcRequestBuilders
+                .post("/lingo/start");
+    }
+
     @Test
     @DisplayName("start a new game")
     void startNewGame() throws Exception {
-        RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/start");
-
-        mockMvc.perform(request)
+        mockMvc.perform(startGameRequest)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", greaterThanOrEqualTo(0)))
                 .andExpect(jsonPath("$.score", is(0)))
@@ -43,10 +50,7 @@ class GameControllerTest {
     @Test
     @DisplayName("guess a word after starting a game")
     void guessWord() throws Exception {
-        RequestBuilder newGameRequest = MockMvcRequestBuilders
-                .post("/lingo/start");
-
-        MockHttpServletResponse response = mockMvc.perform(newGameRequest).andReturn().getResponse();
+        MockHttpServletResponse response = mockMvc.perform(startGameRequest).andReturn().getResponse();
         Integer gameId = JsonPath.read(response.getContentAsString(), "$.id");
 
         String attempt = "X";
@@ -64,10 +68,7 @@ class GameControllerTest {
     @Test
     @DisplayName("get the progress of a playing game")
     void getGameProgress() throws Exception {
-        RequestBuilder newGameRequest = MockMvcRequestBuilders
-                .post("/lingo/start");
-
-        MockHttpServletResponse response = mockMvc.perform(newGameRequest).andReturn().getResponse();
+        MockHttpServletResponse response = mockMvc.perform(startGameRequest).andReturn().getResponse();
         Integer gameId = JsonPath.read(response.getContentAsString(), "$.id");
 
         RequestBuilder progressRequest = MockMvcRequestBuilders
@@ -85,10 +86,7 @@ class GameControllerTest {
     @Test
     @DisplayName("getting a list of all games")
     void getListGames() throws Exception {
-        RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/start");
-
-        mockMvc.perform(request);
+        mockMvc.perform(startGameRequest);
 
         RequestBuilder progressRequest = MockMvcRequestBuilders
                 .get("/lingo/games");
