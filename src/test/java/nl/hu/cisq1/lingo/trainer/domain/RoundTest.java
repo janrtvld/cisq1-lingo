@@ -15,37 +15,23 @@ import java.util.stream.Stream;
 import static nl.hu.cisq1.lingo.trainer.domain.Mark.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-
+@DisplayName("Round")
 class RoundTest {
 
     private Round round;
 
     @BeforeEach
-    @DisplayName("initiate round before each test")
+    @DisplayName("initiates new round before each test")
     void beforeEachTest() {
         round = new Round("BAARD");
     }
 
     @Test
-    @DisplayName("Every guess reduces amount of attempts left")
-    void guessReducesAttempts() {
+    @DisplayName("counts attempts after every guess")
+    void guessCountsAttempts() {
         round.guess("BAKEN");
 
         assertEquals(1,round.getAttempts());
-    }
-
-    @Test
-    @DisplayName("guess can not be processed if attempt limit is reached")
-    void guessLimitThrowsError() {
-        round.guess("BAKEN");
-        round.guess("BAKEN");
-        round.guess("BAKEN");
-        round.guess("BAKEN");
-        round.guess("BAKEN");
-
-        assertThrows(AttemptLimitReachedException.class, () ->
-            round.guess("BAKEN")
-        );
     }
 
     @Test
@@ -60,7 +46,7 @@ class RoundTest {
     }
 
     @Test
-    @DisplayName("attempt limit is reached when 5 or more attempts have been done")
+    @DisplayName("attempt limit is reached when 5 attempts have been done")
     void attemptLimitReached() {
         round.guess("BAKEN");
         round.guess("BAKEN");
@@ -72,15 +58,40 @@ class RoundTest {
     }
 
     @Test
-    @DisplayName("base hint only provides first letter")
-    void baseHintProvidesFirstLetter() {
-        String hint = round.giveHint();
+    @DisplayName("throws exception when trying to guess after attempt limit is reached")
+    void guessLimitThrowsError() {
+        round.guess("BAKEN");
+        round.guess("BAKEN");
+        round.guess("BAKEN");
+        round.guess("BAKEN");
+        round.guess("BAKEN");
 
-        assertEquals("B....", hint);
+        assertThrows(AttemptLimitReachedException.class, () ->
+                round.guess("BAKEN")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideBaseHintExamples")
+    @DisplayName("provides a base hint with the first character")
+    void baseHintProvidesFirstCharacter(Round round, String expectedHint) {
+        assertEquals(expectedHint, round.giveHint());
+    }
+
+    static Stream<Arguments> provideBaseHintExamples() {
+        Round roundWithFiveLetterWord = new Round("BLOEM");
+        Round roundWithSixLetterWord = new Round("DAAGDE");
+        Round roundWithSevenLetterWord = new Round("APEKOOL");
+
+        return Stream.of(
+                Arguments.of(roundWithFiveLetterWord,  "B...."),
+                Arguments.of(roundWithSixLetterWord, "D....."),
+                Arguments.of(roundWithSevenLetterWord,  "A......")
+        );
     }
 
     @Test
-    @DisplayName("provide hint based on previous feedback")
+    @DisplayName("provides hint based on previous guesses")
     void generateHintBasedOnFeedback() {
         round.guess("BAKEN");
         String hint = round.giveHint();
@@ -88,10 +99,9 @@ class RoundTest {
         assertEquals("BA...", hint);
     }
 
-
     @Test
-    @DisplayName("feedback is added to the feedback history")
-    void feedbackSaved() {
+    @DisplayName("keeps track of feedback history")
+    void feedbackIsSaved() {
         round.guess("BAKEN");
         round.guess("BAKEN");
 
@@ -105,7 +115,6 @@ class RoundTest {
             round.getLastFeedback()
         );
     }
-
 
     @ParameterizedTest
     @MethodSource("provideWordLengthExamples")
@@ -141,36 +150,32 @@ class RoundTest {
     }
 
     static Stream<Arguments> provideFeedbackExamples() {
-        // Input
         Round round1 = new Round("BAARD");
         Round round2 = new Round("ABBBBB");
         Round round3 = new Round("WOLOLOO");
 
-        List<Mark> marks1 = List.of(INVALID, INVALID, INVALID, INVALID, INVALID);
-        List<Mark> marks2 = List.of(CORRECT, ABSENT, ABSENT, ABSENT, ABSENT);
-        List<Mark> marks3 = List.of(CORRECT, CORRECT, PRESENT, ABSENT, ABSENT);
-        List<Mark> marks4 = List.of(ABSENT, PRESENT, CORRECT, PRESENT, CORRECT);
-        List<Mark> marks5 = List.of(CORRECT, CORRECT, CORRECT, CORRECT, CORRECT);
-        List<Mark> marks6 = List.of(PRESENT, PRESENT, ABSENT, ABSENT, ABSENT,ABSENT);
-        List<Mark> marks7 = List.of(PRESENT, ABSENT, PRESENT, ABSENT, PRESENT,ABSENT,CORRECT);
-
-        // Output
-        Feedback feedback1 = new Feedback("BERGEN", marks1);
-        Feedback feedback2 = new Feedback("BONJE", marks2);
-        Feedback feedback3 = new Feedback("BARST", marks3);
-        Feedback feedback4 = new Feedback("DRAAD", marks4);
-        Feedback feedback5 = new Feedback("BAARD", marks5);
-        Feedback feedback6 = new Feedback("BAAAAA", marks6);
-        Feedback feedback7 = new Feedback("ONONOMO", marks7);
+        Feedback fb1 = new Feedback("BERGEN", List.of(INVALID, INVALID, INVALID, INVALID, INVALID));
+        Feedback fb2 = new Feedback("BONJE", List.of(CORRECT, ABSENT, ABSENT, ABSENT, ABSENT));
+        Feedback fb3 = new Feedback("BARST", List.of(CORRECT, CORRECT, PRESENT, ABSENT, ABSENT));
+        Feedback fb4 = new Feedback("DRAAD", List.of(ABSENT, PRESENT, CORRECT, PRESENT, CORRECT));
+        Feedback fb5 = new Feedback("BAARD", List.of(CORRECT, CORRECT, CORRECT, CORRECT, CORRECT));
+        Feedback fb6 = new Feedback("BAAAAA", List.of(PRESENT, PRESENT, ABSENT, ABSENT, ABSENT,ABSENT));
+        Feedback fb7 = new Feedback("ONONOMO", List.of(PRESENT, ABSENT, PRESENT, ABSENT, PRESENT,ABSENT,CORRECT));
+        Feedback fb8 = new Feedback("O", List.of(INVALID, INVALID, INVALID, INVALID, INVALID,INVALID,INVALID));
+        Feedback fb9 = new Feedback("", List.of(INVALID, INVALID, INVALID, INVALID, INVALID,INVALID,INVALID));
+        Feedback fb10 = new Feedback("OOOOOOOOOOOOOOOOOO", List.of(INVALID, INVALID, INVALID, INVALID, INVALID,INVALID,INVALID));
 
         return Stream.of(
-                Arguments.of(round1,"BERGEN", feedback1),
-                Arguments.of(round1,"BONJE", feedback2),
-                Arguments.of(round1,"BARST", feedback3),
-                Arguments.of(round1,"DRAAD", feedback4),
-                Arguments.of(round1,"BAARD", feedback5),
-                Arguments.of(round2,"BAAAAA", feedback6),
-                Arguments.of(round3,"ONONOMO", feedback7)
+                Arguments.of(round1,"BERGEN", fb1),
+                Arguments.of(round1,"BONJE", fb2),
+                Arguments.of(round1,"BARST", fb3),
+                Arguments.of(round1,"DRAAD", fb4),
+                Arguments.of(round1,"BAARD", fb5),
+                Arguments.of(round2,"BAAAAA", fb6),
+                Arguments.of(round3,"ONONOMO", fb7),
+                Arguments.of(round3,"O", fb8),
+                Arguments.of(round3,"", fb9),
+                Arguments.of(round3,"OOOOOOOOOOOOOOOOOO", fb10)
         );
     }
 

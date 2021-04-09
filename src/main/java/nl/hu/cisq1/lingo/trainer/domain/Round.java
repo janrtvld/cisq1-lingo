@@ -42,6 +42,12 @@ public class Round {
         attempts++;
     }
 
+    /**
+     * The function first checks if the attempt is valid.
+     * After that it checks which characters are correct.
+     * Lastly we check which characters are present. We avoid duplicated presents by checking if we already
+     * marked it in the solutionCharArray.
+     */
     private void generateFeedback(String attempt) {
         List<Mark> marks = new ArrayList<>();
 
