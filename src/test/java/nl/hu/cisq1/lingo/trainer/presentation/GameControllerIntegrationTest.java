@@ -18,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +45,7 @@ class GameControllerIntegrationTest {
     @MockBean
     private SpringWordRepository wordRepository;
 
-    @MockBean
+    @Autowired
     private SpringGameRepository gameRepository;
 
     @Autowired
@@ -55,17 +54,18 @@ class GameControllerIntegrationTest {
     private Game game;
 
     @BeforeEach
-    @DisplayName("initiate game for tests")
+    @DisplayName("initiate game for test")
     void beforeEachTest() {
         this.gameRepository.deleteAll();
-        Game game = new Game();
-        game.startNewRound("baard");
-        this.game = game;
-        when(gameRepository.findById(0L))
-                .thenReturn(Optional.of(game));
+
+        this.game = new Game();
+        game.startNewRound("BLOEM");
+
+        this.gameRepository.save(game);
     }
 
     @AfterEach
+    @DisplayName("clean up after test")
     void afterEachTest() {
         this.gameRepository.deleteAll();
     }
@@ -74,12 +74,12 @@ class GameControllerIntegrationTest {
     @DisplayName("start a new game")
     void startNewGame() throws Exception {
         when(wordRepository.findRandomWordByLength(5))
-                .thenReturn(Optional.of(new Word("baard")));
+                .thenReturn(Optional.of(new Word("BAARD")));
 
         RequestBuilder request = MockMvcRequestBuilders
                 .post("/lingo/start");
 
-        String expectedHint = "b....";
+        String expectedHint = "B....";
 
         mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -93,15 +93,17 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("start a new round")
     void startNewRound() throws Exception {
-        game.guess("baard");
+        Long id = game.getId();
+        game.guess("BLOEM");
+        this.gameRepository.save(game);
 
         when(wordRepository.findRandomWordByLength(6))
-                .thenReturn(Optional.of(new Word("hoeden")));
+                .thenReturn(Optional.of(new Word("HOEDEN")));
 
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/newRound");
+                .post("/lingo/"+ id + "/newRound");
 
-        String expectedHint = "h.....";
+        String expectedHint = "H.....";
 
         mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -125,11 +127,13 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot start new round if still playing")
     void cannotStartRoundWhenPlaying() throws Exception {
+        Long id = game.getId();
+
         when(wordRepository.findRandomWordByLength(6))
-                .thenReturn(Optional.of(new Word("hoeden")));
+                .thenReturn(Optional.of(new Word("HOEDEN")));
 
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/newRound");
+                .post("/lingo/" + id + "/newRound");
 
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -138,6 +142,7 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot start new round if player is eliminated")
     void cannotStartRoundWhenEliminated() throws Exception {
+        Long id = game.getId();
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
@@ -145,10 +150,10 @@ class GameControllerIntegrationTest {
         game.guess("boert");
 
         when(wordRepository.findRandomWordByLength(6))
-                .thenReturn(Optional.of(new Word("hoeden")));
+                .thenReturn(Optional.of(new Word("HOEDEN")));
 
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/newRound");
+                .post("/lingo/" + id + "/newRound");
 
         mockMvc.perform(request)
                 .andExpect(status().isBadRequest());
@@ -157,12 +162,14 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("get progress of playing game")
     void getProgressOfGame() throws Exception {
-        game.guess("baars");
+        Long id = game.getId();
+        game.guess("BLOEI");
+        this.gameRepository.save(game);
 
         RequestBuilder request = MockMvcRequestBuilders
-                .get("/lingo/0");
+                .get("/lingo/" + id);
 
-        String expectedHint = "baar.";
+        String expectedHint = "BLOE.";
 
         mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -186,16 +193,18 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot guess if player is eliminated")
     void cannotGuessWhenEliminated() throws Exception {
+        Long id = game.getId();
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
         game.guess("boert");
+        this.gameRepository.save(game);
 
         String attempt = "LOSER";
 
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/guess")
+                .post("/lingo/"+ id + "/guess")
                 .param("attempt", attempt);
 
         mockMvc.perform(request)
@@ -205,12 +214,14 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("cannot guess if round ended")
     void cannotGuessWhenNoRound() throws Exception {
-        game.guess("baard");
+        Long id = game.getId();
+        game.guess("BLOEM");
+        this.gameRepository.save(game);
 
         String attempt = "LOSER";
 
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/guess")
+                .post("/lingo/"+ id + "/guess")
                 .param("attempt", attempt);
 
         mockMvc.perform(request)
@@ -234,13 +245,14 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("guess provides new hint")
     void guessProvidesNewHint() throws Exception {
-        String attempt = "baars";
+        Long id = game.getId();
+        String attempt = "BLOEI";
 
         RequestBuilder request = MockMvcRequestBuilders
-                .post("/lingo/0/guess")
+                .post("/lingo/"+ id + "/guess")
                 .param("attempt", attempt);
 
-        String expectedHint = "baar.";
+        String expectedHint = "BLOE.";
 
         mockMvc.perform(request)
                 .andExpect(status().isOk())
@@ -262,9 +274,6 @@ class GameControllerIntegrationTest {
     @Test
     @DisplayName("all games are provided")
     void allGamesAreProvided() throws Exception {
-        when(gameRepository.findAll())
-                .thenReturn(List.of(game));
-
         RequestBuilder request = MockMvcRequestBuilders
                 .get("/lingo/games");
 
