@@ -232,12 +232,17 @@ class GameTest {
         assertEquals(6, game.provideNextWordLength());
     }
 
+    @Test
+    @DisplayName("starts with 5 letter word")
+    void startingWordLength() {
+        assertEquals(5,game.provideNextWordLength());
+    }
+
     @ParameterizedTest
     @DisplayName("next word length is reset after 7 letter word")
     @MethodSource("provideNextWordExamples")
     void nextWordBetweenValues(String wordToGuess, Integer expectedWordLength) {
         game.startNewRound(wordToGuess);
-        game.guess(wordToGuess);
 
         assertEquals(expectedWordLength, game.provideNextWordLength());
     }
