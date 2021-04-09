@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 
 /**
@@ -31,31 +32,33 @@ import static org.mockito.Mockito.when;
  * - its methods are called by the test framework instead of a controller
  * - the GameService calls a test double instead of an actual repository
  */
+@DisplayName("GameService")
 class GameServiceTest {
 
     private SpringGameRepository gameRepository;
     private SpringWordRepository wordRepository;
     private GameService service;
+    private Game game;
 
     @BeforeEach
-    @DisplayName("initiate mocks and service for tests")
-    void init() {
-        gameRepository = Mockito.mock(SpringGameRepository.class);
-        wordRepository = Mockito.mock(SpringWordRepository.class);
+    @DisplayName("initiates mocks and service for tests")
+    void beforeEach() {
+        gameRepository = mock(SpringGameRepository.class);
+        wordRepository = mock(SpringWordRepository.class);
+        this.game = new Game();
+
+        when(gameRepository.findById(anyLong()))
+                .thenReturn(Optional.of(game));
+        when(wordRepository.findRandomWordByLength(anyInt()))
+                .thenReturn(Optional.of(new Word("BLOEM")));
+
         service = new GameService(gameRepository,wordRepository);
     }
 
     @Test
     @DisplayName("Starting a game returns progress of the game")
     void startGameReturnsNewGame() {
-        Game game = new Game();
-        game.startNewRound("tower");
-
-        Mockito.when(gameRepository.save(game))
-                .thenReturn(game);
-        Mockito.when(wordRepository.findRandomWordByLength(anyInt()))
-                .thenReturn(Optional.of(new Word("tower")));
-
+        game.startNewRound("BLOEM");
         ProgressDTO result = service.startGame();
         ProgressDTO expected = convertGameToProgressDTO(game);
 
@@ -65,7 +68,7 @@ class GameServiceTest {
     @Test
     @DisplayName("Get progress throws exception if game not found")
     void getProgressReturnsExceptionIfGameNotFound() {
-        Mockito.when(gameRepository.findById(anyLong()))
+        when(gameRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(GameNotFoundException.class, () -> service.getProgress(0L));
@@ -74,13 +77,8 @@ class GameServiceTest {
     @Test
     @DisplayName("Get progress returns game as progress DTO")
     void getProgressReturnsProgressDTO() {
-        Game game = new Game();
-        game.startNewRound("tower");
-
+        game.startNewRound("BLOEM");
         ProgressDTO expected = convertGameToProgressDTO(game);
-
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.of(game));
 
         ProgressDTO result = service.getProgress(anyLong());
 
@@ -90,7 +88,7 @@ class GameServiceTest {
     @Test
     @DisplayName("New round throws exception if game does not exists")
     void newRoundThrowsErrorByNonExistingGame() {
-        Mockito.when(gameRepository.findById(anyLong()))
+        when(gameRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(GameNotFoundException.class, () -> service.startNewRound(0L));
@@ -99,16 +97,11 @@ class GameServiceTest {
     @Test
     @DisplayName("New round returns the new progress with the created round")
     void newRoundReturnsGameProgress() {
-        Game game = new Game();
-
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.of(new Game()));
-        Mockito.when(wordRepository.findRandomWordByLength(anyInt()))
-                .thenReturn(Optional.of(new Word("tower")));
+        game.startNewRound("BLOEM");
+        game.guess("BLOEM");
 
         ProgressDTO result = service.startNewRound(anyLong());
 
-        game.startNewRound("tower");
         ProgressDTO expected = convertGameToProgressDTO(game);
 
         assertEquals(expected, result);
@@ -117,7 +110,7 @@ class GameServiceTest {
     @Test
     @DisplayName("Guess throws exception if game does not exists")
     void guessThrowsExceptionByNonExistingGame() {
-        Mockito.when(gameRepository.findById(anyLong()))
+        when(gameRepository.findById(anyLong()))
                 .thenReturn(Optional.empty());
 
         assertThrows(GameNotFoundException.class, () -> service.guess(0L,"LOSER"));
@@ -126,15 +119,10 @@ class GameServiceTest {
     @Test
     @DisplayName("Guess returns the new progress with the processed guess")
     void guessIsReturnedInGameProgress() {
-        Game game = new Game();
-        game.startNewRound("tower");
+        game.startNewRound("BLOEM");
+        ProgressDTO result = service.guess(anyLong(),"BLOEI");
 
-        Mockito.when(gameRepository.findById(anyLong()))
-                .thenReturn(Optional.of(game));
-
-        ProgressDTO result = service.guess(anyLong(),"lower");
-
-        game.guess("lower");
+        game.guess("BLOEI");
         ProgressDTO expected = convertGameToProgressDTO(game);
 
         assertEquals(expected, result);
@@ -144,7 +132,7 @@ class GameServiceTest {
     @DisplayName("throw exception by no games found")
     void allGamesEmptyException() {
         List<Game> gameList = new ArrayList<>();
-        Mockito.when(gameRepository.findAll())
+        when(gameRepository.findAll())
                 .thenReturn(gameList);
 
         assertThrows(NotFoundException.class, () -> service.getAllGames());
@@ -153,12 +141,11 @@ class GameServiceTest {
     @Test
     @DisplayName("return a list of games")
     void allGamesReturnsListOfGames() throws NotFoundException {
-        Game game = new Game();
         game.startNewRound("GRAAL");
 
         List<Game> gameList = List.of(game);
 
-        Mockito.when(gameRepository.findAll())
+        when(gameRepository.findAll())
                 .thenReturn(gameList);
 
         assertEquals(1, service.getAllGames().size());

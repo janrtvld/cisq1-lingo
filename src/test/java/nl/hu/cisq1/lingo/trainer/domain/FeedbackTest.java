@@ -68,24 +68,18 @@ class FeedbackTest {
         String invalidAttempt = "BERGEN";
         String presentAttempt = "DRAAD";
         String correctAttempt = "BAARD";
+        String longAttempt = "BAARDVOGEL";
 
-        List<Mark> marks1 = List.of(INVALID, INVALID, INVALID, INVALID, INVALID, INVALID);
-        List<Mark> marks2 = List.of(ABSENT, PRESENT, CORRECT, PRESENT, CORRECT);
-        List<Mark> marks3 = List.of(CORRECT, CORRECT, CORRECT, CORRECT, CORRECT);
-
-        Feedback feedback1 = new Feedback(invalidAttempt, marks1);
-        Feedback feedback2 = new Feedback(presentAttempt, marks2);
-        Feedback feedback3 = new Feedback(correctAttempt, marks3);
-
-        String previousHint = "B....";
-        String invalidHint = "B....";
-        String presentHint = "B.A.D";
-        String correctHint = "BAARD";
+        Feedback fb1 = new Feedback(invalidAttempt, List.of(INVALID, INVALID, INVALID, INVALID, INVALID, INVALID));
+        Feedback fb2 = new Feedback(longAttempt, List.of(INVALID, INVALID, INVALID, INVALID, INVALID, INVALID));
+        Feedback fb3 = new Feedback(presentAttempt, List.of(ABSENT, PRESENT, CORRECT, PRESENT, CORRECT));
+        Feedback fb4 = new Feedback(correctAttempt, List.of(CORRECT, CORRECT, CORRECT, CORRECT, CORRECT));
 
         return Stream.of(
-                Arguments.of(previousHint, feedback1, invalidHint),
-                Arguments.of(invalidHint, feedback2, presentHint),
-                Arguments.of(presentHint, feedback3, correctHint)
+                Arguments.of("B....", fb1, "B...."),
+                Arguments.of("B....", fb2, "B...."),
+                Arguments.of("B....", fb3, "B.A.D"),
+                Arguments.of("B.A.D", fb4,  "BAARD")
         );
     }
 

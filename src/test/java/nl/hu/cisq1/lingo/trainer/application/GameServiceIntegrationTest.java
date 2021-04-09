@@ -6,25 +6,17 @@ import nl.hu.cisq1.lingo.trainer.domain.Game;
 import nl.hu.cisq1.lingo.trainer.domain.GameStatus;
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
 import nl.hu.cisq1.lingo.trainer.application.dto.ProgressDTO;
-import nl.hu.cisq1.lingo.words.domain.Word;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
 
 
 /**
@@ -46,21 +38,24 @@ class GameServiceIntegrationTest {
     @Autowired
     private GameService service;
 
-    @MockBean
+    @Autowired
     private SpringGameRepository repository;
 
+    private Game game;
+
     @BeforeEach
-    @DisplayName("initiate game for tests")
+    @DisplayName("initiate game for test")
     void beforeEachTest() {
         this.repository.deleteAll();
-        Game game = new Game();
-        game.startNewRound("baard");
-        when(repository.findById(anyLong()))
-                .thenReturn(Optional.of(game));
+
+        this.game = new Game();
+        game.startNewRound("BAARD");
+
+        this.repository.save(game);
     }
 
     @AfterEach
-    @DisplayName("clear repository")
+    @DisplayName("clean up after test")
     void afterEachTest() {
         this.repository.deleteAll();
     }
@@ -79,49 +74,57 @@ class GameServiceIntegrationTest {
     @Test
     @DisplayName("cannot start a new round when still playing")
     void cannotStartNewRoundWhenPlaying() {
-        assertThrows(GameStateException.class, () -> this.service.startNewRound(0L));
+        Long id = game.getId();
+        assertThrows(GameStateException.class, () -> this.service.startNewRound(id));
     }
 
     @Test
     @DisplayName("cannot start new round when player is eliminated")
     void cannotStartNewRoundWhenPlayerEliminated() {
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
+        Long id = game.getId();
+        this.service.guess(id,"B");
+        this.service.guess(id,"B");
+        this.service.guess(id,"B");
+        this.service.guess(id,"B");
+        this.service.guess(id,"B");
 
-        assertThrows(GameStateException.class, () -> this.service.startNewRound(0L));
+        assertThrows(GameStateException.class, () -> this.service.startNewRound(id));
     }
 
     @Test
     @DisplayName("playing an attempt returns newly created feedback in progress")
     void guessIsPlayed() {
-        ProgressDTO actual = this.service.guess(0L,"PIZZA");
+        ProgressDTO actual = this.service.guess(game.getId(),"BAARS");
+
+        String expectedHint = "BAAR.";
 
         assertEquals( 1, actual.getFeedbackHistory().size());
+        assertEquals( expectedHint, actual.getCurrentHint());
     }
 
     @Test
     @DisplayName("cannot play guess if player has been eliminated")
     void cannotGuessIfPlayerIsEliminated() {
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
-        this.service.guess(0L,"L");
+        Long id = game.getId();
+        this.service.guess(id,"L");
+        this.service.guess(id,"L");
+        this.service.guess(id,"L");
+        this.service.guess(id,"L");
+        this.service.guess(id,"L");
 
-        assertThrows(GameStateException.class, () -> this.service.guess(0L,"L"));
+        assertThrows(GameStateException.class, () -> this.service.guess(id,"BAARD"));
     }
 
     @ParameterizedTest
     @DisplayName("getting progress of game returns the current state of the game")
     @MethodSource("randomGameExamples")
     void getProgressReturnsCurrentGameState(Game game, ProgressDTO progress) {
-        assertEquals(progress.getFeedbackHistory(), game.getLatestRound().getFeedbackHistory());
-        assertEquals(progress.getCurrentHint(), game.getLatestRound().giveHint());
-        assertEquals(progress.getScore(), game.getScore());
-        assertEquals(progress.getId(), game.getId());
+        this.repository.deleteAll();
+        this.repository.save(game);
+
+        ProgressDTO actual = this.service.getProgress(game.getId());
+
+        assertEquals(progress.getGameStatus(),actual.getGameStatus());
     }
 
     static Stream<Arguments> randomGameExamples() {
@@ -145,31 +148,45 @@ class GameServiceIntegrationTest {
 
         return Stream.of(
                 Arguments.of(gameWithPlayingRound, gameWithPlayingRoundProgress),
-                Arguments.of(gameWithWordGuessed, gameWithWordGuessedProgress),
-                Arguments.of(gameWithPlayerEliminated, gameWithPlayerEliminatedProgress)
+                Arguments.of(gameWithWordGuessed,gameWithWordGuessedProgress),
+                Arguments.of(gameWithPlayerEliminated,gameWithPlayerEliminatedProgress)
         );
     }
 
     @ParameterizedTest
-    @DisplayName("next word length is based on current word to guess")
+    @DisplayName("next word length is based on previous round")
     @MethodSource("wordLengthExamples")
-    void nextWordLength(String wordToGuess, int nextLength) {
-        Game game = new Game();
-        game.startNewRound(wordToGuess);
-        assertEquals(nextLength, game.provideNextWordLength());
+    void nextWordLength(Game game, int nextLength) {
+        this.repository.save(game);
+
+        ProgressDTO progress = this.service.startNewRound(game.getId());
+
+        assertEquals(nextLength, progress.getCurrentHint().length());
     }
 
     static Stream<Arguments> wordLengthExamples() {
+        Game gameWithFiveLetterWord = new Game();
+        gameWithFiveLetterWord.startNewRound("BAARD");
+        gameWithFiveLetterWord.guess("BAARD");
+
+        Game gameWithSixLetterWord = new Game();
+        gameWithSixLetterWord.startNewRound("BERGEN");
+        gameWithSixLetterWord.guess("BERGEN");
+
+        Game gameWithSevenLetterWord = new Game();
+        gameWithSevenLetterWord.startNewRound("BAARDEN");
+        gameWithSevenLetterWord.guess("BAARDEN");
+
         return Stream.of(
-                Arguments.of("baard", 6),
-                Arguments.of("bergen", 7),
-                Arguments.of("baarden", 5),
-                Arguments.of("bord", 5)
+                Arguments.of(gameWithFiveLetterWord, 6),
+                Arguments.of(gameWithSixLetterWord, 7),
+                Arguments.of(gameWithSevenLetterWord, 5)
         );
     }
 
     private static ProgressDTO convertGameToProgressDTO(Game game) {
         return new ProgressDTO.Builder(game.getId())
+                .gameStatus(game.getGameStatus().getStatus())
                 .score(game.getScore())
                 .currentHint(game.getLatestRound().giveHint())
                 .feedbackHistory(game.getLatestRound().getFeedbackHistory())

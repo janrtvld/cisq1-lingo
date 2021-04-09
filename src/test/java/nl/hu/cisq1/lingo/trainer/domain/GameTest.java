@@ -1,7 +1,6 @@
 package nl.hu.cisq1.lingo.trainer.domain;
 
 import nl.hu.cisq1.lingo.trainer.domain.exception.GameStateException;
-import nl.hu.cisq1.lingo.trainer.domain.exception.NoFeedbackFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,19 +13,19 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 
-
+@DisplayName("Game")
 class GameTest {
 
     private Game game;
 
     @BeforeEach
-    @DisplayName("initiate game for before each test")
+    @DisplayName("initiates new game before each test")
     void beforeEachTest() {
         game = new Game();
     }
 
     @Test
-    @DisplayName("new round can not be started when current round is still open")
+    @DisplayName("cannot start new round when there already is an open round")
     void cannotStartRoundWhenCurrentRoundIsOpen() {
         game.startNewRound("BAARD");
 
@@ -36,7 +35,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("new round can not be started when the game is eliminated")
+    @DisplayName("cannot start new round when the game is eliminated")
     void cannotStartRoundWhenGameEliminated() {
         game.startNewRound("BAARD");
         game.guess("BAREN");
@@ -51,7 +50,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("new round changes status of the game to Playing")
+    @DisplayName("changes game status by starting a new round")
     void newRoundChangesGameStatus() {
         game.startNewRound("BAARD");
 
@@ -59,8 +58,8 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("round is added to the game")
-    void roundAddedToGame() {
+    @DisplayName("returns the latest round")
+    void returnsLatestRound() {
         game.startNewRound("BAARD");
 
         Round round = new Round("BAARD");
@@ -68,7 +67,18 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("Latest round throws error if game has no rounds")
+    @DisplayName("returns the latest round when multiple rounds are played")
+    void multipleRoundsReturnsLatest() {
+        game.startNewRound("BAARD");
+        game.guess("BAARD");
+        game.startNewRound("BOORD");
+
+        Round round = new Round("BOORD");
+        assertEquals(round,game.getLatestRound());
+    }
+
+    @Test
+    @DisplayName("throws exception if there is no last round")
     void noActiveRoundsException() {
         assertThrows(GameStateException.class, () ->
             game.getLatestRound()
@@ -76,7 +86,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("guess can not be made if the game has no open round")
+    @DisplayName("throws exception when trying to guess without a open round")
     void cannotGuessWhenNoRound() {
         assertThrows(GameStateException.class, () ->
             game.guess("BAREN")
@@ -84,7 +94,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("guess can not be made if the game is eliminated")
+    @DisplayName("throws exception when trying to guess when game is eliminated")
     void cannotGuessWhenGameEliminated() {
         game.startNewRound("BAARD");
         game.guess("BAREN");
@@ -99,7 +109,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("player is eliminated when word is not guessed within attempt limit")
+    @DisplayName("is eliminated when word is not guessed within attempt limit")
     void playerEliminatedWordNotGuessed() {
         game.startNewRound("BAARD");
 
@@ -113,7 +123,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("player is not eliminated when word is guessed within attempt limit")
+    @DisplayName("is not eliminated when word is guessed within attempt limit")
     void playerNotEliminatedWhenWordIsGuessed() {
         game.startNewRound("BAARD");
 
@@ -127,7 +137,22 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("game status is changed when word is guessed")
+    @DisplayName("is still eliminated when word is correctly guessed after attempt limit has been reached")
+    void playerEliminatedWordGuessedAfterLimitReached() {
+        game.startNewRound("BAARD");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+        game.guess("BAREN");
+
+        assertThrows(GameStateException.class, () ->
+                game.guess("BAARD")
+        );
+    }
+
+    @Test
+    @DisplayName("changes game status when word is guessed")
     void correctGuessChangesStatus() {
         game.startNewRound("BAARD");
         game.guess("BAARD");
@@ -136,7 +161,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("score is added when the word is guessed")
+    @DisplayName("adds score when word is guessed")
     void addScoreWhenWordIsGuessed() {
         game.startNewRound("BAARD");
         game.guess("BAARD");
@@ -144,8 +169,44 @@ class GameTest {
         assertEquals(25,game.getScore());
     }
 
+    @ParameterizedTest
+    @DisplayName("correctly adds score when winning multiple rounds")
+    @MethodSource("provideGameExamples")
+    void nextScoreCorrectlyCounted(Game game, Integer expectedScore) {
+        assertEquals(game.getScore(), expectedScore);
+    }
+
+    static Stream<Arguments> provideGameExamples() {
+        Game testGame1 = new Game();
+        testGame1.startNewRound("BAARD");
+        testGame1.guess("BAARD");
+
+        Game testGame2 = new Game();
+        testGame2.startNewRound("BAARD");
+        testGame2.guess("BAARD");
+        testGame2.startNewRound("DAAGDE");
+        testGame2.guess("BAARD");
+        testGame2.guess("DAAGDE");
+
+        Game testGame3 = new Game();
+        testGame3.startNewRound("BAARD");
+        testGame3.guess("BAARD");
+        testGame3.startNewRound("DAAGDE");
+        testGame3.guess("DAAGDE");
+        testGame3.startNewRound("APEKOOL");
+        testGame3.guess("APOKOOL");
+        testGame3.guess("APOKOOL");
+        testGame3.guess("APEKOOL");
+
+        return Stream.of(
+                Arguments.of(testGame1,  25),
+                Arguments.of(testGame2,  45),
+                Arguments.of(testGame3,  65)
+        );
+    }
+
     @Test
-    @DisplayName("player is still playing when word is not guessed")
+    @DisplayName("is still playing when word is not guessed")
     void playerIsPlaying() {
         game.startNewRound("BAARD");
         game.guess("BAREN");
@@ -154,7 +215,7 @@ class GameTest {
     }
 
     @Test
-    @DisplayName("player is not playing when word is guessed")
+    @DisplayName("is not playing when word is guessed")
     void playerIsNotPlaying() {
         game.startNewRound("BAARD");
         game.guess("BAARD");
