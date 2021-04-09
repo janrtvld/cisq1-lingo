@@ -1,5 +1,5 @@
 # Vulnerability Analysis
-Samenvatting van de OWASP top 10 met af en toe een voorbeeld uit het project.
+Samenvatting van de OWASP top 10 met een aantal voorbeelden uit het project
 
 ## A1:2017 Injection
 
@@ -21,23 +21,22 @@ Authorisatie zou beter kunnen helpen. DROP/UPDATE statements kunnen dan bijvoorb
 door Admin gebruikers worden gedaan en niet door elke user input. 
 
 ### Counter-measures
+Validatie van ingevoerde gegevens van de gebruiker kan deze vulnerability verhelpen. Zorg ervoor
+dat de gebruikers-invoer niet rechtstreeks als query wordt meegegeven. Denk aan Prepared statements. Dit zou voor het Lingo project de beste oplossing zijn.
+
 Fuzzing-tests kunnen je helpen om je systeem veiliger te maken. Deze vorm van testen is
 bedoeld om programmeerfouten of beveiligingsgaten te vinden. Er zijn verschillende frameworks/libraries die dit voor je kunnen doen zoals: 
 
 Je kan bijvoorbeeld MvC tests opstellen met bepaalde SQL-statements als Strings en zo proberen
 gaten te vinden in je systeem.
 
-Validatie van ingevoerde gegevens van de gebruiker kan deze vulnerability verhelpen. Zorg ervoor
-dat de gebruikers-invoer niet rechtstreeks als query wordt meegegeven. Denk aan Prepared statements.
-
 
 ## A2:2017 Broken Authentication
 
 ### Description
-Broken authentication heeft te maken met het authenticatie beleid binnen je systeem. Dit is het proces
-is het proces waarbij iemand nagaat of een gebruiker, een andere computer of applicatie daadwerkelijk is wie hij beweert te zijn.
-
-
+Broken authentication heeft te maken met het authenticatie beleid in je systeem. 
+Functionaliteit dat samenhangt met authenticatie en session management is soms verkeerd geïmplementeerd. 
+Denk aan zwakke credentials, slecht wachtwoordbeleid of te lange sessies. Dit is een vorm van Broken Authentication.
 
 ### Risk
 Hier een aantal scenario's:
@@ -60,17 +59,15 @@ computer en de tweede gebruiker erna nog ingelogd staat als de eerste persoon.
 ### Counter-measures
 Tegenmaatregelen kunnen bijvoorbeeld zijn:
 
-Zorg er in ieder geval voor dat een dictionary attack minder makkelijk wordt door een limiet in te stellen op het raden van wachtwoorden.
-Bijvoorbeeld dat elk uur maar 5x een fout wachtwoord ingevoerd mag worden.
-Een wachtwoordbeleid wat ingericht is op langere wachtwoorden i.p.v. korte wachtwoorden met leestekens.
 MFA (Multi factor authentication) implementeren door naast een wachtwoord ook een sms bevestiging te moeten doen.
+Een wachtwoordbeleid wat ingericht is op langere wachtwoorden i.p.v. korte wachtwoorden met leestekens.
 Session management zo instellen dat de gebruiker elke x aantal uren opnieuw moet inloggen.
 
 
 ## A3:2017 Sensitive Data Exposure
  
 ### Description
-Sensitive data exposure gaat over het behandelen van gevoelige data in je systeem. Denk hierbij aan
+Sensitive data exposure gaat over het onvoldoende beschermen van gevoelige gegevens. Denk hierbij aan
 wachtwoorden, maar ook creditcard gegevens en persoonlijke informatie. 
 
 Een belangrijke factor is het encrypten van gegevens, zodat aanvallers die bijvoorbeeld je verkeer onderscheppen
@@ -78,10 +75,9 @@ niet zomaar kunnen inzien welke data je verstuurd. Daarbij kun je gegevens ook e
 wachtwoorden inzien van de database, maar dien je deze eerst te 'ontsleutelen' met een key.
 
 ### Risk
-Het risico van dataverkeer versturen over bijvoorbeeld HTTP is dat het heel makkelijk is voor andere om deze pakketjes te onderscheppen
+Het risico van dataverkeer versturen over bijvoorbeeld HTTP is dat het heel makkelijk is voor anderen om deze pakketjes te onderscheppen
 en in te zien. Ook inloggegevens kunnen onderschept worden, wat je authenticatie schaad. Een risico van wachtwoorden in plain-tekst opslaan is dat je met een query gemakkelijk alle wachtwoorden kan inzien.
 Hetzelfde geldt voor persoonsgegevens en/of creditcard gegevens.
-
 
 ### Counter-measures
 De nieuwe GDPR stelt verplicht dat je bepaalde security measures moet toepassen als je gevoelige data in je systeem opslaat.
@@ -92,9 +88,19 @@ Richt daarbij ook je key-management veilig in.
 
 Github biedt ook een aantal tools om je te beschermen tegen bijvoorbeeld het committen van API KEYS of andere gevoelige informatie. 
 
+
 ## A4:2017 XML External Entities
 
-???
+### Description
+XML external entities gaat over het gebruik van XML processors.
+
+### Risk
+External entities kunnen gebruikt worden om inzage te krijgen in privé data.
+
+### Counter-measures
+Geem XML-processors gebruiken of zorgen dat je libraries geüpdatet zijn.
+Andere maatregelen zijn input validatie, filtering en whitelisting.
+
 
 ## A5:2017 Broken Acces Control
 
@@ -105,12 +111,14 @@ en zo andere profielen kan zien is dat een vulnerability.
 
 ### Risk
 Je kan dus je systeem wel inrichten op het authenticeren van gebruikers door in te loggen, maar het is belangrijk
-dat je dus ook bij requests verifieerd of dit wel die gebruiker is. Als ik me tevens kan voordoen als een 
-administrator is je authorizatie ook omzeild.
+dat je dus ook bij requests verifieert of dit wel die gebruiker is. Als ik me tevens kan voordoen als een 
+administrator is je Authorization ook omzeild.
 
 ### Counter-measures
+Werk met een Library waar acces control goed is geregeld. Stel bijvoorbeeld in dat je standaard nergens bij kan, tenzij je een bepaalde rol hebt.
 Maak geen gebruik van op-een-volgende userId's. Zo kan ik in mijn url niet gokken op Id's. Verder dien je bij requests
 ook te verifiëren van wie deze komt. Zo kun je voorkomen dat een normale user admin requests kan doen.
+
 
 ## A6:2017 Security Misconfiguration
 
@@ -148,27 +156,21 @@ laadt zijn session data verstuurd naar de attacker.
 Dit kan ervoor zorgen dat andere gebruikers van bijvoorbeeld dit forum hun gegevens automatisch versturen naar de attacker zonder
 dat zij dit door hebben. Met session-data kan de attacker zich tevens voordoen als anderen.
 
-
 ### Counter-measures
-Het encoden van user input om dit soort malifide code onschadelijk te maken.
+Geen HTML/JS toestaan of het omzetten wanneer het uit een input komt om het zo onschadelijk te maken.
+
 
 ## A8:2017 Insecure Deserialization
 
 ### Description
-Dit heeft te maken met het rondsturen van data. Bij ons project zou je bijvoorbeeld het hele game object kunnen
-serialiseren en rondsturen. Dit zorgt er wel voor dat je misschien ook data van de game mee stuurt die de gebruiker niet mag inzien.
-Wat dacht je van het woord dat hij/zij moet raden. Dan wordt het spel wel makkelijk.
-
-De oplossing is het versturen van JSON waar in tekst alleen de gegevens staan die je wilt versturen. Hiervoor gebruik ik het DTO.
+Onveilig omgaan met geserialiseerde objecten. Aanvallers kunnen geserialiseerde objecten ook aanpassen en dit kan leiden tot remote code execution als je alles wat je binnenkrijgt zomaar deserialiseerd.
 
 ### Risk
-In ons lingo spel zou je het woord dus kunnen zien. Veel gevaarlijker wordt het als je rollen of user data rechstreeks
-serialiseerd en deserialiseerd. Een attacker verandert bijvoorbeeld het geserialiseerde object
-om een rol te veranderen van gebruiker naar administrator.
-
+Het toelaten van geserialiseerde objecten uit onbetrouwbare bronnen kan zorgen voor remote code execution.
 
 ### Counter-measures
-Objecten niet rechtstreeks serialiseren en rondsturen maar converteren naar JSON dat alleen de data bevat die je wilt versturen.
+Laat geen geserialiseerde objecten uit onbetrouwbare bronnen toe of serialiseer deze in een afgeschermde omgeving.
+Check tevens de typen en laat errors loggen in je systeem.
 
 
 ## A9:2017 Using Components with Known Vulnerabilities
@@ -184,11 +186,10 @@ Components met backdoors kunnen de security measures van je systeem onderuithale
 ### Counter-measures
 Verwijder dependencies die je niet gebruikt. Dit kan alleen maar lekken opleveren.
 
-Wij gebruiken DependaBot die onze dependencies checkt op verouderde versies en vulnerabilities. We gebruiken
+In het Lingo Project gebruiken we DependaBot die onze dependencies checkt op verouderde versies en vulnerabilities. We gebruiken
 ook SonarCloud die onze repository scant op vulnerabilities.
 
 Wees zuinig met het downloaden van niet geverifieerde plugins.
-
 
 
 ## A10:2017 Insufficient Logging & Monitoring
